@@ -298,7 +298,15 @@ map.on("load", async () => {
     "circle-color": "#9a9fa5",
     "circle-opacity": 0.55,
     "circle-stroke-width": 1,
-    "circle-stroke-color": "#ffffff",
+    // Sightings from the last year carry a black outline so "recent but no
+    // longer counted" stands apart from genuinely old history at a glance,
+    // even at zoom levels where the age tags are hidden.
+    "circle-stroke-color": [
+      "step",
+      ["get", "ts"],
+      "#ffffff",
+      now - 365 * DAY, "#000000",
+    ],
   };
 
   map.addLayer({ id: "tokyo-points-old", type: "circle", source: "tokyo", filter: OLD_F, paint: oldPaint });

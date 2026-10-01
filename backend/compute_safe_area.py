@@ -211,7 +211,9 @@ def run(days: int = 365) -> dict:
         # prefecture would be presented as having few bears when in fact we
         # simply have no current information about it.
         age = (now - newest).days if newest else None
-        stale = age is None or age > days
+        # the condition that matters is simply "no sightings in the risk
+        # window", since that is what silently empties the risk layer
+        stale = len(pts) == 0
         freshness[region] = {
             "latest": newest.strftime("%Y/%m/%d") if newest else None,
             "age_days": age,
@@ -220,10 +222,12 @@ def run(days: int = 365) -> dict:
         }
         if stale:
             issues.append(
-                f"{region}: 最新の出没記録が{age}日前で、直近{days}日の記録が{len(pts)}件。"
-                f"この県のリスクエリアは実態を反映していない可能性があります"
+                f"{region}: 直近{days}日の出没記録が0件"
+                + (f"（最新は{age}日前）" if age is not None else "（日付のある記録なし）")
+                + "。この県のリスクエリアは実態を反映していない可能性があります"
             )
-            print(f"  [DATA QUALITY] {region} feed is stale ({age} days old)")
+            print(f"  [DATA QUALITY] {region}: no sightings in the last {days} days"
+                  f" (newest {age} days old)")
 
     utm_pts = [shp_transform(TO_UTM, p) for p in all_pts]
     buffers_utm = shapely.union_all([p.buffer(BUFFER_METERS, quad_segs=16) for p in utm_pts])
