@@ -40,13 +40,15 @@ jobs:
           BEAR_SKY_MAP_DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: python backend/refresh_data.py
 
-      - name: 更新分をコミット
+      # GeoJSON等は毎回再生成するのでコミットしない。新しい住所を引いたときだけ
+      # 増えるジオコーディングキャッシュだけを永続化する。
+      - name: ジオコーディングキャッシュの更新をコミット
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data frontend/public/data
+          git add data/processed/geocode_cache.json
           # [skip ci] を付けないとこのpushが再度このワークフローを起動してしまう
-          git diff --staged --quiet || git commit -m "chore: データ自動更新 [skip ci]"
+          git diff --staged --quiet || git commit -m "chore: ジオコーディングキャッシュ更新 [skip ci]"
           git push
 
       - uses: actions/setup-node@v4

@@ -23,11 +23,17 @@ from shapely.geometry import mapping, shape
 from shapely.ops import transform as shp_transform
 import pyproj
 
+from config import (
+    BUFFER_METERS,
+    LP_YEAR,
+    REGION_PREFECTURE,
+    RISK_WINDOW_DAYS,
+    SQM_THRESHOLD,
+)
+
 DATA = Path(__file__).parent.parent / "data"
 TILE_CACHE = DATA / "raw" / "lp_tiles"
-LP_YEAR = 2025
-SQM_THRESHOLD = 20.0
-BUFFER_METERS = 2000.0
+PREFECTURE_PATH = DATA / "raw" / "prefectures.geojson"
 GRID = 600  # points per 5-degree binary tile side (1/120 deg)
 
 def js_round(x):
@@ -130,6 +136,25 @@ def dark_polygon(lon_min, lat_min, lon_max, lat_max):
     return union, int(mask.sum()), mask.size
 
 
+def prefecture_polygon(name: str):
+    """Mainland outline of one prefecture, used to clip dark-sky areas to land.
+
+    Only the largest polygon is kept. Tokyo legally extends to 南鳥島 at 153°E,
+    so the full multipolygon spans a bounding box of several million grid cells
+    that is almost entirely open ocean. The outlying islands are also outside
+    the area the prefectures report bear sightings for, so presenting them as
+    "safe" would mean inferring safety from data we simply do not have.
+    """
+    fc = json.loads(PREFECTURE_PATH.read_text(encoding="utf-8"))
+    for feature in fc["features"]:
+        if feature["properties"].get("N03_001") == name:
+            geom = shape(feature["geometry"]).buffer(0)  # buffer(0) fixes self-intersections
+            if geom.geom_type == "MultiPolygon":
+                geom = max(geom.geoms, key=lambda g: g.area)
+            return geom
+    raise RuntimeError(f"prefecture not found in boundary data: {name}")
+
+
 def load_points(path: Path, cutoff: datetime | None):
     fc = json.loads(path.read_text(encoding="utf-8"))
     pts, future_dates, undated = [], [], 0
@@ -179,17 +204,20 @@ def run(days: int = 365) -> dict:
     buffers = shp_transform(TO_WGS, buffers_utm)
     buffers = shapely.set_precision(buffers, 1e-5)
 
-    # --- dark sky per region (bbox = bear data extent + ~10km margin) ---
+    # --- dark sky per region, clipped to the prefecture outline ---
+    # Without the clip the result is the analysis bounding box itself, which
+    # both looks like a rectangle drawn on the map and wrongly presents open
+    # sea as a safe place to observe from (the atlas treats ocean as dark).
     regions = {}
-    for region, name in (("tokyo", "tokyo_kuma.geojson"), ("miyagi", "miyagi_kuma.geojson")):
-        fc = json.loads((processed / name).read_text(encoding="utf-8"))
-        xs = [f["geometry"]["coordinates"][0] for f in fc["features"]]
-        ys = [f["geometry"]["coordinates"][1] for f in fc["features"]]
-        m = 0.1
-        bbox = (min(xs) - m, min(ys) - m, max(xs) + m, max(ys) + m)
-        dark, n_dark, n_total = dark_polygon(*bbox)
-        print(f"{region}: bbox={tuple(round(v, 3) for v in bbox)}, "
-              f"dark cells {n_dark}/{n_total} ({n_dark / n_total:.1%})")
+    for region, prefecture in REGION_PREFECTURE.items():
+        outline = prefecture_polygon(prefecture)
+        lon_min, lat_min, lon_max, lat_max = outline.bounds
+        m = 0.02  # small margin so the grid covers the whole outline
+        dark, n_dark, n_total = dark_polygon(lon_min - m, lat_min - m, lon_max + m, lat_max + m)
+        if dark is not None:
+            dark = dark.intersection(outline)
+        print(f"{region} ({prefecture}): dark cells {n_dark}/{n_total} "
+              f"({n_dark / n_total:.1%}), clipped to prefecture")
         regions[region] = dark
         counts[f"{region}_dark_ratio"] = round(n_dark / n_total, 3) if n_total else 0
 
@@ -246,7 +274,8 @@ def run(days: int = 365) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--days", type=int, default=365, help="bear sightings lookback window")
+    parser.add_argument("--days", type=int, default=RISK_WINDOW_DAYS,
+                        help="bear sightings lookback window")
     args = parser.parse_args()
     run(days=args.days)
 

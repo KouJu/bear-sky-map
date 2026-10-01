@@ -99,7 +99,7 @@
     </div>
     <div class="group">
       <label><input type="checkbox" id="safe-toggle" checked />
-        <span class="swatch" style="background:rgba(45,164,78,.5)"></span>安全観測エリア (SQM≥20 − 熊2km)</label>
+        <span class="swatch" style="background:repeating-linear-gradient(45deg,#1a7f37 0 2px,transparent 2px 5px);border:1px solid #1a7f37"></span>安全観測エリア (SQM≥20 − 熊2km)</label>
       <label><input type="checkbox" id="buffer-toggle" checked />
         <span class="swatch" style="background:rgba(207,34,46,.4)"></span>熊リスクエリア (直近1年, 2km)</label>
     </div>
@@ -131,7 +131,12 @@
         宮城県「クマ目撃情報」/
         夜空の明るさ: <a href="https://djlorenz.github.io/astronomy/lp/" target="_blank" rel="noopener">Light Pollution Atlas 2025 (David J. Lorenz)</a>（VIIRS衛星データに基づく）/
         住所座標変換: <a href="https://msearch.gsi.go.jp/" target="_blank" rel="noopener">国土地理院 地名検索API</a> /
-        地図: <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院 地理院タイル（淡色地図）</a>
+        地図: <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院 地理院タイル（淡色地図）</a> /
+        県境: <a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-v3_1.html" target="_blank" rel="noopener">国土交通省 国土数値情報（行政区域データ）</a>を加工して作成
+      </p>
+      <p class="sources">
+        本アプリは国土交通省の国土数値情報（行政区域データ）を加工して作成していますが、
+        内容について国土交通省が保証するものではありません。
       </p>
     </div>
   </details>

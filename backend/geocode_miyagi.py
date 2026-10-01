@@ -12,11 +12,13 @@ import argparse
 import json
 import re
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import openpyxl
 import requests
+
+from config import RETENTION_YEARS
 
 DATA = Path(__file__).parent.parent / "data"
 RAW_PATH = DATA / "raw" / "miyagi_kuma.xlsx"
@@ -161,11 +163,21 @@ def run(limit: int | None = None) -> dict:
     stats = {"cache_hits": 0, "api_calls": 0}
 
     features, log = [], []
-    ok_district = ok_municipality_only = failed = 0
+    ok_district = ok_municipality_only = failed = dropped_old = 0
     issues: list[str] = []
     now = datetime.now()
+    retention_cutoff = now - timedelta(days=365 * RETENTION_YEARS)
 
     for row in rows:
+        # drop history beyond the retention window before spending any API call
+        if row["date"]:
+            try:
+                if datetime.strptime(row["date"], "%Y/%m/%d") < retention_cutoff:
+                    dropped_old += 1
+                    continue
+            except ValueError:
+                pass
+
         municipality = row["municipality"]
         district_raw = row["district"] or ""
         district = clean_district(district_raw)
@@ -235,7 +247,7 @@ def run(limit: int | None = None) -> dict:
     # compact (no indent): roughly halves the file the browser has to download
     OUT_GEOJSON.write_text(json.dumps(geojson, ensure_ascii=False), encoding="utf-8")
 
-    total = len(rows)
+    total = len(rows) - dropped_old  # rows actually geocoded
     report = {
         "generated_at": now.isoformat(timespec="seconds"),
         "fiscal_year": fiscal_year,
@@ -247,6 +259,7 @@ def run(limit: int | None = None) -> dict:
         "any_coordinate_rate": round((ok_district + ok_municipality_only) / total, 3) if total else 0,
         "cache_hits": stats["cache_hits"],
         "api_calls": stats["api_calls"],
+        "dropped_old": dropped_old,
         "issues": issues,
         "log": log,
     }

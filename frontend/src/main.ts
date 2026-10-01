@@ -95,6 +95,23 @@ class HomeControl implements maplibregl.IControl {
 }
 map.addControl(new HomeControl(), "top-right");
 
+/** Diagonal stripes on a transparent background, for use as a fill-pattern. */
+function makeHatchImage(color: string, size = 8): ImageData {
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext("2d")!;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.6;
+  // draw the stripe three times so it tiles seamlessly across edges
+  for (const offset of [-size, 0, size]) {
+    ctx.beginPath();
+    ctx.moveTo(offset, size);
+    ctx.lineTo(offset + size, 0);
+    ctx.stroke();
+  }
+  return ctx.getImageData(0, 0, size, size);
+}
+
 type FeatureCollection = {
   type: "FeatureCollection";
   features: Array<{
@@ -208,13 +225,18 @@ map.on("load", async () => {
     paint: { "raster-opacity": 0.5 },
   });
 
-  // core layers: dark-sky minus bear buffers (green) and the risk buffers (red)
+  // A diagonal hatch distinguishes the safe area from the light-pollution
+  // overlay, which also uses green bands. Relying on texture rather than hue
+  // alone keeps the two readable together (and for colour-blind viewers).
+  map.addImage("safe-hatch", makeHatchImage("#1a7f37"));
+
+  // core layers: dark-sky minus bear buffers (hatched) and the risk buffers (red)
   map.addSource("safe-area", { type: "geojson", data: safeArea });
   map.addLayer({
     id: "safe-area-fill",
     type: "fill",
     source: "safe-area",
-    paint: { "fill-color": "#2da44e", "fill-opacity": 0.3 },
+    paint: { "fill-pattern": "safe-hatch", "fill-opacity": 0.85 },
   });
   map.addLayer({
     id: "safe-area-line",
@@ -274,6 +296,10 @@ map.on("load", async () => {
       type: "symbol",
       source,
       filter: OLD_F,
+      // Only label once zoomed into a specific area. Across a whole prefecture
+      // there are hundreds of old sightings and the labels bury the map; the
+      // grey colour plus the legend already carries the meaning at that scale.
+      minzoom: 12.5,
       layout: {
         "text-field": "1年以上前",
         "text-font": ["Noto Sans Regular"],

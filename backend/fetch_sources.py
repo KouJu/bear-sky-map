@@ -27,6 +27,17 @@ TOKYO_PAGE = "https://www.kankyo.metro.tokyo.lg.jp/nature/animals_plants/bear/da
 TOKYO_ORIGIN = "https://www.kankyo.metro.tokyo.lg.jp"
 TOKYO_LINK = re.compile(r'href="(/documents/d/kankyo/tukinowaguma_source[^"]*)"')
 
+# Prefecture outlines, used to clip the dark-sky polygons to land. This is the
+# 国土交通省 N03 administrative boundary data simplified to 1% by SmartNews and
+# republished as GeoJSON (the official release is a 40MB+ shapefile per
+# prefecture, which would drag geopandas back into the dependency list).
+# Free for any use; the 国土交通省 credit is required and is shown in the app.
+PREFECTURE_URL = (
+    "https://raw.githubusercontent.com/smartnews-smri/japan-topography"
+    "/main/data/municipality/geojson/s0010/prefectures.json"
+)
+PREFECTURE_NAME_KEY = "N03_001"
+
 UA = {"User-Agent": "bear-sky-map/1.0 (personal stargazing-safety map)"}
 
 
@@ -79,8 +90,24 @@ def fetch_tokyo() -> Fetched:
     return _download(url, RAW / "tokyo_kuma.csv", expect="csv")
 
 
+def fetch_prefectures() -> Fetched:
+    """Download the prefecture outlines once; they rarely change."""
+    dest = RAW / "prefectures.geojson"
+    if dest.exists():
+        return Fetched(dest.stem, dest, PREFECTURE_URL, dest.stat().st_size, changed=False)
+
+    resp = requests.get(PREFECTURE_URL, headers=UA, timeout=120)
+    resp.raise_for_status()
+    body = resp.content
+    if not body.lstrip().startswith(b"{"):
+        raise RuntimeError(f"{PREFECTURE_URL} did not return JSON")
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_bytes(body)
+    return Fetched(dest.stem, dest, PREFECTURE_URL, len(body), changed=True)
+
+
 def fetch_all() -> list[Fetched]:
-    return [fetch_tokyo(), fetch_miyagi()]
+    return [fetch_tokyo(), fetch_miyagi(), fetch_prefectures()]
 
 
 if __name__ == "__main__":

@@ -5,7 +5,9 @@
     "moduleResolution": "Bundler",
     "strict": true,
     "skipLibCheck": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "lib": ["ES2020", "DOM"],
+    "types": ["vite/client"]
   },
   "include": ["src"]
 }

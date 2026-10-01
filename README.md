@@ -66,12 +66,33 @@ cd backend; .\venv\Scripts\python.exe notify.py
 
 実行ログは `logs/` に残る（直近30件を保持）。
 
+## 主な設定値
+
+`backend/config.py` に集約してある。
+
+| 定数 | 既定値 | 意味 |
+|---|---|---|
+| `RISK_WINDOW_DAYS` | 365 | この期間内の出没がリスクバッファの対象 |
+| `RETENTION_YEARS` | 3 | これより古い記録は破棄（1〜3年はグレー表示で残す） |
+| `BUFFER_METERS` | 2000 | 出没地点まわりの危険半径 |
+| `SQM_THRESHOLD` | 20.0 | 暗空とみなす夜空の明るさ |
+| `REGION_PREFECTURE` | 東京都/宮城県 | 暗空エリアを切り抜く県 |
+
+暗空エリアは県境（本土部分）で切り抜いている。これをしないと解析範囲の矩形が
+そのまま地図に出てしまい、さらに「海の上」が暗空＝安全として表示されてしまう。
+
 ## データ出典
 
 - 東京都環境局「ツキノワグマ目撃等情報」
 - 宮城県「クマ目撃情報」
 - Light Pollution Atlas 2025 (David J. Lorenz) — VIIRS衛星データに基づく夜空の明るさ
-- 地図: OpenStreetMap contributors
+- 地図: 国土地理院「地理院タイル（淡色地図）」
+- 住所の座標変換: 国土地理院「地名検索API」
+- 県境: 国土交通省「国土数値情報（行政区域データ）」を
+  [smartnews-smri/japan-topography](https://github.com/smartnews-smri/japan-topography) 経由で取得し加工
+
+本アプリは国土交通省の国土数値情報（行政区域データ）を加工して作成しているが、
+内容について国土交通省が保証するものではない。
 
 ## 免責
 
