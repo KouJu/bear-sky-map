@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>熊出没マップ プロトタイプ</title>
+  <link href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" rel="stylesheet" />
+  <style>
+    html, body {
+      height: 100%; margin: 0; padding: 0;
+      font-family: sans-serif; background: #f6f8fa;
+    }
+    body { display: flex; flex-direction: column; }
+
+    /* ---- top: period filter (above the map, not overlapping) ---- */
+    #filter-bar {
+      flex: none;
+      display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+      padding: 10px 12px;
+    }
+    .filter-btn {
+      appearance: none; border: 1px solid #c9d2da; border-radius: 8px;
+      background: #ffffff; color: #24292f;
+      padding: 6px 14px; font-size: 13px; cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease,
+                  background 0.15s ease, color 0.15s ease;
+    }
+    .filter-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.22);
+    }
+    .filter-btn.active {
+      background: #1d3557; color: #ffffff; border-color: #1d3557;
+      font-weight: bold;
+    }
+    .filter-btn.active:hover { background: #274b78; }
+
+    /* ---- middle: the map, centered ---- */
+    #map {
+      flex: 1; min-height: 300px;
+      width: min(96vw, 1200px);
+      margin: 0 auto;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* ---- bottom: legend + counts + layer controls (below the map) ---- */
+    #legend {
+      flex: none;
+      display: flex; gap: 18px; flex-wrap: wrap;
+      justify-content: center; align-items: center;
+      padding: 10px 12px; font-size: 13px; line-height: 1.6;
+    }
+    #legend .dot {
+      display: inline-block; width: 10px; height: 10px;
+      border-radius: 50%; margin-right: 5px; vertical-align: baseline;
+    }
+    #legend .swatch {
+      display: inline-block; width: 12px; height: 12px;
+      margin-right: 5px; vertical-align: baseline; border-radius: 2px;
+    }
+    #legend .count { color: #57606a; }
+    #legend label { cursor: pointer; white-space: nowrap; }
+
+    /* ---- bottom: usage warning + data sources ---- */
+    #notice {
+      flex: none;
+      margin: 0 auto 10px; padding: 8px 14px;
+      width: min(96vw, 1200px); box-sizing: border-box;
+      background: #fff8e5; border: 1px solid #e8d48b; border-radius: 8px;
+      font-size: 12px; line-height: 1.7; color: #4a3f1f;
+    }
+    #notice > summary { cursor: pointer; font-weight: bold; font-size: 13px; }
+    #notice .notice-body p { margin: 8px 0 0; }
+    #notice .sources { color: #6b5f3a; }
+    #legend .group {
+      display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+    }
+    #legend .hint { color: #57606a; }
+  </style>
+</head>
+<body>
+  <div id="filter-bar" role="group" aria-label="表示期間の選択">
+    <button class="filter-btn" data-days="1">1日</button>
+    <button class="filter-btn" data-days="7">7日</button>
+    <button class="filter-btn" data-days="30">30日</button>
+    <button class="filter-btn" data-days="90">90日</button>
+    <button class="filter-btn" data-days="365">1年</button>
+    <button class="filter-btn active" data-days="all">全て</button>
+  </div>
+
+  <div id="map"></div>
+
+  <div id="legend">
+    <div class="group">
+      <span><span class="dot" style="background:#e63946"></span>東京都 <span class="count" id="count-tokyo"></span></span>
+      <span><span class="dot" style="background:#457b9d"></span>宮城県 <span class="count" id="count-miyagi"></span></span>
+      <span><span class="dot" style="background:#9a9fa5"></span>1年以上前の出没 (リスク計算対象外)</span>
+    </div>
+    <div class="group">
+      <label><input type="checkbox" id="safe-toggle" checked />
+        <span class="swatch" style="background:rgba(45,164,78,.5)"></span>安全観測エリア (SQM≥20 − 熊2km)</label>
+      <label><input type="checkbox" id="buffer-toggle" checked />
+        <span class="swatch" style="background:rgba(207,34,46,.4)"></span>熊リスクエリア (直近1年, 2km)</label>
+    </div>
+    <div class="group">
+      <label><input type="checkbox" id="lp-toggle" checked />光害レイヤー (2025)</label>
+      <span>透過 <input type="range" id="lp-opacity" min="0" max="100" value="50" style="width:90px;vertical-align:middle" /></span>
+    </div>
+    <span class="hint">地図ダブルクリックで予測SQM表示</span>
+  </div>
+
+  <details id="notice">
+    <summary>⚠️ ご利用上の注意と出典（必ずお読みください）</summary>
+    <div class="notice-body">
+      <p>
+        <strong>「熊リスクが低い」は安全を保証するものではありません。</strong>
+        表示しているのは自治体に<em>報告された</em>出没情報のみで、報告のない場所に熊がいないことを
+        意味しません。熊は報告の有無と無関係に行動します。夜間の山間部では特に、
+        鈴やラジオなどの音の出るもの、ヘッドランプ、熊スプレーの携行、単独行動を避ける、
+        最新の地元情報を確認する、といった対策を各自の判断と責任で行ってください。
+      </p>
+      <p>
+        出没地点の座標は住所テキストから自動変換しており、数百m〜1km程度の誤差を含みます。
+        夜空の明るさ（SQM）は衛星データに基づく<em>予測値</em>で、月齢・天候・季節による変動は
+        含みません。本アプリの情報に基づく行動の結果について、作者は責任を負いません。
+      </p>
+      <p class="sources">
+        出典:
+        東京都環境局「ツキノワグマ目撃等情報」/
+        宮城県「クマ目撃情報」/
+        夜空の明るさ: <a href="https://djlorenz.github.io/astronomy/lp/" target="_blank" rel="noopener">Light Pollution Atlas 2025 (David J. Lorenz)</a>（VIIRS衛星データに基づく）/
+        住所座標変換: <a href="https://msearch.gsi.go.jp/" target="_blank" rel="noopener">国土地理院 地名検索API</a> /
+        地図: <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院 地理院タイル（淡色地図）</a>
+      </p>
+    </div>
+  </details>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

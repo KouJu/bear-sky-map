@@ -1,0 +1,21 @@
+# secrets — never commit
+backend/discord_webhook.txt
+
+# dependencies / build output
+node_modules/
+frontend/dist/
+backend/venv/
+__pycache__/
+*.pyc
+logs/
+
+# データは毎回 backend/refresh_data.py が再生成するのでコミットしない。
+# 毎日の自動更新で履歴が肥大化するのを避けるため。
+data/raw/
+data/processed/*
+frontend/public/data/
+
+# ただしジオコーディングのキャッシュだけは残す。これが無いとクラウド実行の
+# たびに国土地理院APIへ1000件以上問い合わせることになり、時間もかかるうえ
+# 公共APIへの負荷にもなる。
+!data/processed/geocode_cache.json

@@ -1,0 +1,67 @@
+name: データ更新とサイト公開
+
+on:
+  schedule:
+    # 毎日 06:00 JST (UTC 21:00)。GitHub側の混雑で数十分ずれることがある
+    - cron: "0 21 * * *"
+  push:
+    branches: [main]
+  workflow_dispatch: # Actionsタブから手動実行するためのボタン
+
+permissions:
+  contents: write # 更新したGeoJSONをコミットするため
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  refresh-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - run: pip install -r backend/requirements.txt
+
+      # ジオコーディング結果はリポジトリ内にキャッシュされているので、
+      # ここで国土地理院APIに問い合わせるのは新規レコード分だけ
+      - name: データ更新
+        env:
+          BEAR_SKY_MAP_DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: python backend/refresh_data.py
+
+      - name: 更新分をコミット
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data frontend/public/data
+          # [skip ci] を付けないとこのpushが再度このワークフローを起動してしまう
+          git diff --staged --quiet || git commit -m "chore: データ自動更新 [skip ci]"
+          git push
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/dist
+      - id: deployment
+        uses: actions/deploy-pages@v4
