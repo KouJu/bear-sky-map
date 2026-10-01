@@ -51,7 +51,27 @@
       margin: 0 auto;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      position: relative;
     }
+
+    /* light-pollution colour key, sitting under the map's own controls */
+    #sqm-bar {
+      position: absolute; top: 150px; right: 10px; z-index: 1;
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 6px; padding: 6px 8px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+      font-size: 10px; line-height: 1.3; color: #24292f;
+      pointer-events: none;
+    }
+    #sqm-bar .title { font-weight: bold; margin-bottom: 4px; text-align: center; }
+    #sqm-bar .title span { font-weight: normal; color: #57606a; font-size: 9px; }
+    #sqm-bar .scale { display: flex; flex-direction: column; }
+    #sqm-bar .step { display: flex; align-items: center; gap: 5px; height: 11px; }
+    #sqm-bar .sw { width: 16px; height: 11px; flex: none; }
+    #sqm-bar .lbl { white-space: nowrap; font-variant-numeric: tabular-nums; }
+    /* the SQM>=20 cutoff this app uses to call a sky "dark" */
+    #sqm-bar .cut { border-top: 1.5px solid #1a7f37; }
+    #sqm-bar .cutlbl { color: #1a7f37; font-weight: bold; padding: 2px 0 1px; }
 
     /* ---- bottom: legend + counts + layer controls (below the map) ---- */
     #legend {
@@ -100,7 +120,12 @@
 
   <div id="stale-warning" hidden></div>
 
-  <div id="map"></div>
+  <div id="map">
+    <div id="sqm-bar" aria-label="夜空の明るさの凡例">
+      <div class="title">夜空の明るさ<br /><span>SQM mag/arcsec²</span></div>
+      <div class="scale" id="sqm-scale"></div>
+    </div>
+  </div>
 
   <div id="legend">
     <div class="group">

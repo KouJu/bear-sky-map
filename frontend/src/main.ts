@@ -117,6 +117,58 @@ function makeHatchImage(color: string, size = 14): ImageData {
   return ctx.getImageData(0, 0, size, size);
 }
 
+/** Colour key for the light pollution overlay.
+ *
+ * Colours and thresholds are the atlas's own zone definitions (from its
+ * viewer source), so the key matches what is actually drawn on the map. The
+ * atlas classifies by artificial/natural brightness ratio; the SQM figure
+ * shown here is that ratio converted with SQM = 22 - 2.5*log10(1 + ratio),
+ * which is the same formula the double-click readout uses.
+ */
+// Listed darkest first. `floor` is the lowest SQM in that zone, i.e. the
+// boundary with the next brighter one, so reading a swatch's label gives the
+// darkness you are guaranteed at least within that colour.
+const LP_ZONES: Array<{ color: string; floor: number; label: string }> = [
+  { color: "rgb(0,0,0)", floor: 21.99, label: "21.99 +" },
+  { color: "rgb(34,34,34)", floor: 21.94, label: "21.94" },
+  { color: "rgb(66,66,66)", floor: 21.89, label: "21.89" },
+  { color: "rgb(20,47,114)", floor: 21.81, label: "21.81" },
+  { color: "rgb(33,84,216)", floor: 21.69, label: "21.69" },
+  { color: "rgb(15,87,20)", floor: 21.5, label: "21.50" },
+  { color: "rgb(31,161,42)", floor: 21.25, label: "21.25" },
+  { color: "rgb(110,100,30)", floor: 20.91, label: "20.91" },
+  { color: "rgb(184,166,37)", floor: 20.49, label: "20.49" },
+  { color: "rgb(191,100,30)", floor: 20.02, label: "20.02" },
+  { color: "rgb(253,150,80)", floor: 19.5, label: "19.50" },
+  { color: "rgb(251,90,73)", floor: 18.95, label: "18.95" },
+  { color: "rgb(251,153,138)", floor: 18.38, label: "18.38" },
+  { color: "rgb(160,160,160)", floor: 17.8, label: "17.80" },
+  { color: "rgb(242,242,242)", floor: -Infinity, label: "17.80 −" },
+];
+
+function buildSqmLegend(threshold: number) {
+  const scale = document.getElementById("sqm-scale");
+  if (!scale) return;
+  let cutDrawn = false;
+  for (const zone of LP_ZONES) {
+    const row = document.createElement("div");
+    row.className = "step";
+    // draw the cutoff line once, above the first zone that is too bright
+    if (!cutDrawn && zone.floor < threshold) {
+      row.classList.add("cut");
+      cutDrawn = true;
+    }
+    row.innerHTML =
+      `<span class="sw" style="background:${zone.color}"></span>` +
+      `<span class="lbl">${zone.label}</span>`;
+    scale.appendChild(row);
+  }
+  const note = document.createElement("div");
+  note.className = "cutlbl";
+  note.textContent = `緑線より上が暗空 (SQM≥${threshold})`;
+  scale.appendChild(note);
+}
+
 type FeatureCollection = {
   type: "FeatureCollection";
   features: Array<{
@@ -388,9 +440,13 @@ map.on("load", async () => {
   }
 
   // light pollution overlay controls
+  buildSqmLegend(safeArea.features?.[0]?.properties?.sqm_threshold ?? 20);
+
+  const sqmBar = document.getElementById("sqm-bar")!;
   document.getElementById("lp-toggle")!.addEventListener("change", (ev) => {
     const on = (ev.target as HTMLInputElement).checked;
     map.setLayoutProperty("lp-overlay", "visibility", on ? "visible" : "none");
+    sqmBar.hidden = !on; // the key is meaningless with the layer switched off
   });
 
   // safe-area / bear-buffer layer toggles
