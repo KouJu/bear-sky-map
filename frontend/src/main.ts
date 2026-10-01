@@ -163,10 +163,6 @@ function buildSqmLegend(threshold: number) {
       `<span class="lbl">${zone.label}</span>`;
     scale.appendChild(row);
   }
-  const note = document.createElement("div");
-  note.className = "cutlbl";
-  note.textContent = `緑線より上が暗空 (SQM≥${threshold})`;
-  scale.appendChild(note);
 }
 
 type FeatureCollection = {
