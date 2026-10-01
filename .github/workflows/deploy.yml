@@ -32,6 +32,9 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements.txt
       - run: pip install -r backend/requirements.txt
+      # the Tokyo sightings are scraped from a Power BI dashboard, which needs
+      # a real browser engine
+      - run: python -m playwright install --with-deps chromium
 
       # ジオコーディング結果はリポジトリ内にキャッシュされているので、
       # ここで国土地理院APIに問い合わせるのは新規レコード分だけ

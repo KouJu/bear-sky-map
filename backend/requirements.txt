@@ -2,6 +2,7 @@
 # 当初の設計で想定したが結局使っていないため外した（CI の構築時間を短縮）。
 numpy==2.5.2
 openpyxl==3.1.5
+playwright==1.63.0
 pyproj==3.7.2
 requests==2.34.2
 shapely==2.1.2

@@ -1,4 +1,12 @@
-"""Convert Tokyo bear-sighting CSV (already has lat/lon) into GeoJSON."""
+"""Convert Tokyo bear-sighting CSV (already has lat/lon) into GeoJSON.
+
+NOT currently in the pipeline. 東京都 froze this CSV export at 2026-06-10 while
+the published dashboard kept updating, so refresh_data.py uses
+convert_tokyo_dashboard.py instead. This is kept because the CSV carries exact
+coordinates rather than geocoded ones: if the export ever resumes (watch for
+"tokyo_kuma: 更新あり" in the run report) it is the better source and this
+script can be switched back in.
+"""
 import csv
 import json
 from datetime import datetime, timedelta

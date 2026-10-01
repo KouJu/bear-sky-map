@@ -19,3 +19,9 @@ frontend/public/data/
 # たびに国土地理院APIへ1000件以上問い合わせることになり、時間もかかるうえ
 # 公共APIへの負荷にもなる。
 !data/processed/geocode_cache.json
+
+# 東京都ダッシュボードの取得結果も残す。これが無いと毎回1138行を全件
+# スクロールして読む羽目になり、増分取得(約20秒)の意味がなくなる。
+!data/raw/
+data/raw/*
+!data/raw/tokyo_dashboard.json

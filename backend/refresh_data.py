@@ -15,10 +15,11 @@ from datetime import datetime
 from pathlib import Path
 
 import compute_safe_area
-import convert_tokyo
+import convert_tokyo_dashboard
 import fetch_sources
 import geocode_miyagi
 import notify
+import scrape_tokyo_dashboard
 from config import RISK_WINDOW_DAYS
 
 ROOT = Path(__file__).parent.parent
@@ -48,6 +49,10 @@ def main() -> int:
     parser.add_argument("--days", type=int, default=RISK_WINDOW_DAYS,
                         help="bear sighting lookback window used for risk buffers")
     parser.add_argument("--no-notify", action="store_true", help="skip the Discord report")
+    parser.add_argument("--full-scrape", action="store_true",
+                        help="re-read every dashboard row instead of stopping at known records")
+    parser.add_argument("--skip-scrape", action="store_true",
+                        help="reuse the dashboard data already on disk")
     args = parser.parse_args()
 
     started = datetime.now()
@@ -66,8 +71,19 @@ def main() -> int:
         errors.append(f"ダウンロード失敗: {e}")
         traceback.print_exc()
 
+    # The Tokyo CSV export has been frozen since 2026-06-10 while the published
+    # dashboard keeps updating, so sightings come from scraping that dashboard.
+    if not errors and not args.skip_scrape:
+        try:
+            r = scrape_tokyo_dashboard.scrape(incremental=not args.full_scrape)
+            print(f"tokyo dashboard: {r['total']} rows ({r['new']} new)")
+        except Exception as e:
+            errors.append(f"東京ダッシュボードの取得に失敗: {e}")
+            traceback.print_exc()
+
     if not errors:
-        for label, fn in (("東京の変換", convert_tokyo.run), ("宮城のジオコーディング", geocode_miyagi.run)):
+        for label, fn in (("東京の変換", convert_tokyo_dashboard.run),
+                          ("宮城のジオコーディング", geocode_miyagi.run)):
             try:
                 result = fn()
                 issues += result.get("issues", [])

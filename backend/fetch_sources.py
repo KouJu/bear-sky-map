@@ -86,6 +86,14 @@ def fetch_miyagi() -> Fetched:
 
 
 def fetch_tokyo() -> Fetched:
+    """Download the Tokyo CSV export.
+
+    The pipeline no longer builds the map from this file (the export has been
+    frozen at 2026-06-10 while the dashboard kept updating), but it is still
+    fetched as a watch signal: the day it changes, "tokyo_kuma: 更新あり" shows
+    up in the run report and we can go back to its exact coordinates instead of
+    geocoding the dashboard's place names.
+    """
     url = _resolve(TOKYO_PAGE, TOKYO_LINK, TOKYO_ORIGIN)
     return _download(url, RAW / "tokyo_kuma.csv", expect="csv")
 
