@@ -95,13 +95,18 @@ class HomeControl implements maplibregl.IControl {
 }
 map.addControl(new HomeControl(), "top-right");
 
-/** Diagonal stripes on a transparent background, for use as a fill-pattern. */
-function makeHatchImage(color: string, size = 8): ImageData {
+/** Diagonal stripes on a transparent background, for use as a fill-pattern.
+ *
+ * Kept thin and widely spaced: this layer covers exactly the places a user
+ * wants to read on the basemap — the peak and valley names they would drive
+ * to — so it has to mark the area without hiding what is underneath.
+ */
+function makeHatchImage(color: string, size = 14): ImageData {
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = size;
   const ctx = canvas.getContext("2d")!;
   ctx.strokeStyle = color;
-  ctx.lineWidth = 1.6;
+  ctx.lineWidth = 1;
   // draw the stripe three times so it tiles seamlessly across edges
   for (const offset of [-size, 0, size]) {
     ctx.beginPath();
@@ -236,7 +241,7 @@ map.on("load", async () => {
     id: "safe-area-fill",
     type: "fill",
     source: "safe-area",
-    paint: { "fill-pattern": "safe-hatch", "fill-opacity": 0.85 },
+    paint: { "fill-pattern": "safe-hatch", "fill-opacity": 0.5 },
   });
   map.addLayer({
     id: "safe-area-line",
