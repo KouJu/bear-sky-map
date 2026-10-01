@@ -19,6 +19,7 @@ import convert_tokyo
 import fetch_sources
 import geocode_miyagi
 import notify
+from config import RISK_WINDOW_DAYS
 
 ROOT = Path(__file__).parent.parent
 PROCESSED = ROOT / "data" / "processed"
@@ -44,7 +45,7 @@ def publish_to_frontend() -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--days", type=int, default=365,
+    parser.add_argument("--days", type=int, default=RISK_WINDOW_DAYS,
                         help="bear sighting lookback window used for risk buffers")
     parser.add_argument("--no-notify", action="store_true", help="skip the Discord report")
     args = parser.parse_args()
@@ -87,7 +88,7 @@ def main() -> int:
             safe_stats = compute_safe_area.run(days=args.days)
             issues += safe_stats.get("issues", [])
         except Exception as e:
-            errors.append(f"安全エリアの再計算に失敗: {e}")
+            errors.append(f"直近熊低頻出星観測良好エリアの再計算に失敗: {e}")
             traceback.print_exc()
 
     if not errors:

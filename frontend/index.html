@@ -35,6 +35,15 @@
     }
     .filter-btn.active:hover { background: #274b78; }
 
+    /* ---- warning shown when a prefecture's feed has gone stale ---- */
+    #stale-warning {
+      flex: none;
+      margin: 0 auto 8px; padding: 8px 14px;
+      width: min(96vw, 1200px); box-sizing: border-box;
+      background: #ffeef0; border: 1px solid #e5969f; border-radius: 8px;
+      font-size: 12.5px; line-height: 1.6; color: #86181d;
+    }
+
     /* ---- middle: the map, centered ---- */
     #map {
       flex: 1; min-height: 300px;
@@ -89,19 +98,21 @@
     <button class="filter-btn active" data-days="all">全て</button>
   </div>
 
+  <div id="stale-warning" hidden></div>
+
   <div id="map"></div>
 
   <div id="legend">
     <div class="group">
       <span><span class="dot" style="background:#e63946"></span>東京都 <span class="count" id="count-tokyo"></span></span>
       <span><span class="dot" style="background:#457b9d"></span>宮城県 <span class="count" id="count-miyagi"></span></span>
-      <span><span class="dot" style="background:#9a9fa5"></span>1年以上前の出没 (リスク計算対象外)</span>
+      <span><span class="dot" style="background:#9a9fa5"></span>90日より前の出没 (リスク計算対象外)</span>
     </div>
     <div class="group">
       <label><input type="checkbox" id="safe-toggle" checked />
-        <span class="swatch" style="background:repeating-linear-gradient(45deg,#1a7f37 0 2px,transparent 2px 5px);border:1px solid #1a7f37"></span>安全観測エリア (SQM≥20 − 熊2km)</label>
+        <span class="swatch" style="background:repeating-linear-gradient(45deg,#1a7f37 0 2px,transparent 2px 5px);border:1px solid #1a7f37"></span>直近熊低頻出星観測良好エリア (SQM≥20 − 直近90日の熊2km)</label>
       <label><input type="checkbox" id="buffer-toggle" checked />
-        <span class="swatch" style="background:rgba(207,34,46,.4)"></span>熊リスクエリア (直近1年, 2km)</label>
+        <span class="swatch" style="background:rgba(207,34,46,.4)"></span>熊リスクエリア (直近90日, 2km)</label>
     </div>
     <div class="group">
       <label><input type="checkbox" id="lp-toggle" checked />光害レイヤー (2025)</label>

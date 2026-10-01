@@ -74,7 +74,7 @@ def build_summary(
             f"新規ジオコーディング {miyagi_report.get('api_calls', 0)}件)"
         )
     if safe_area_stats:
-        lines.append(f"- 安全エリア再計算: {safe_area_stats.get('summary', 'done')}")
+        lines.append(f"- 観測良好エリア再計算: {safe_area_stats.get('summary', 'done')}")
 
     if issues:
         lines.append("")

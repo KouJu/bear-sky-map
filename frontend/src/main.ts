@@ -262,12 +262,28 @@ map.on("load", async () => {
   map.addSource("tokyo", { type: "geojson", data: tokyo as any });
   map.addSource("miyagi", { type: "geojson", data: miyagi as any });
 
-  // sightings older than 1 year are shown but excluded from the risk
-  // computation (the backend buffer already uses --days 365), so give them
-  // a distinct muted style + label instead of the normal colors
-  const OLD_CUTOFF = Date.now() - 365 * 24 * 60 * 60 * 1000;
+  // Sightings older than the risk window are shown but excluded from the
+  // computation (the backend buffer uses the same window), so give them a
+  // muted style and an age tag instead of the normal colours.
+  // The split is inclusive/exclusive on purpose: exactly RISK_WINDOW_DAYS old
+  // still counts as current, and the tags read "より前" to match.
+  const DAY = 24 * 60 * 60 * 1000;
+  const RISK_WINDOW_DAYS = 90;
+  const now = Date.now();
+  const OLD_CUTOFF = now - RISK_WINDOW_DAYS * DAY;
   const RECENT_F: any = [">=", ["get", "ts"], OLD_CUTOFF];
   const OLD_F: any = ["<", ["get", "ts"], OLD_CUTOFF];
+
+  // Staged age tags. "step" needs its stops ascending, and older timestamps are
+  // smaller, so the oldest bucket is the default and stops count upward.
+  const ageTagExpression: any = [
+    "step",
+    ["get", "ts"],
+    "3年より前",
+    now - 1095 * DAY, "2年より前",
+    now - 730 * DAY, "1年より前",
+    now - 365 * DAY, "90日より前",
+  ];
 
   const pointRadius: any = ["interpolate", ["linear"], ["zoom"], 5, 4, 12, 9];
   const recentPaint = (color: string): any => ({
@@ -301,7 +317,7 @@ map.on("load", async () => {
       // grey colour plus the legend already carries the meaning at that scale.
       minzoom: 12.5,
       layout: {
-        "text-field": "1年以上前",
+        "text-field": ageTagExpression,
         "text-font": ["Noto Sans Regular"],
         "text-size": 10,
         "text-anchor": "bottom",
@@ -381,6 +397,28 @@ map.on("load", async () => {
     const v = Number((ev.target as HTMLInputElement).value) / 100;
     map.setPaintProperty("lp-overlay", "raster-opacity", v);
   });
+
+  // A prefecture whose feed has stopped updating produces no risk buffers at
+  // all, which would read as "hardly any bears here". Say so explicitly rather
+  // than letting the empty result speak for itself.
+  const staleRegions = (safeArea.features as any[])
+    .map((f) => f.properties)
+    .filter((p) => p.stale);
+  if (staleRegions.length > 0) {
+    const banner = document.getElementById("stale-warning")!;
+    banner.innerHTML =
+      "⚠️ " +
+      staleRegions
+        .map(
+          (p) =>
+            `<b>${p.prefecture}</b>の出没情報は${p.age_days}日前(${p.latest})が最新で、` +
+            `直近${p.days}日の記録が${p.recent_points}件です。` +
+            `熊がいないのではなく情報が更新されていない可能性が高く、` +
+            `この県の「低頻出エリア」は信頼できません。`,
+        )
+        .join("<br/>");
+    banner.hidden = false;
+  }
 
   updateCounts(tokyo, miyagi, 0);
 

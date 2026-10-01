@@ -158,6 +158,7 @@ def prefecture_polygon(name: str):
 def load_points(path: Path, cutoff: datetime | None):
     fc = json.loads(path.read_text(encoding="utf-8"))
     pts, future_dates, undated = [], [], 0
+    newest: datetime | None = None
     now = datetime.now()
     for f in fc["features"]:
         date_str = f["properties"].get("date")
@@ -172,9 +173,12 @@ def load_points(path: Path, cutoff: datetime | None):
             continue
         if dt > now:
             future_dates.append((f["properties"].get("number"), date_str))
+        else:
+            # ignore future-dated typos when judging how fresh the feed is
+            newest = dt if newest is None else max(newest, dt)
         if cutoff is None or dt >= cutoff:
             pts.append(shape(f["geometry"]))
-    return pts, future_dates, undated
+    return pts, future_dates, undated, newest
 
 
 def run(days: int = 365) -> dict:
@@ -186,8 +190,11 @@ def run(days: int = 365) -> dict:
 
     # --- bear buffers (2km, computed in meters via UTM 54N) ---
     all_pts = []
-    for name in ("tokyo_kuma.geojson", "miyagi_kuma.geojson"):
-        pts, future, undated = load_points(processed / name, cutoff)
+    freshness: dict[str, dict] = {}
+    now = datetime.now()
+    for region in REGION_PREFECTURE:
+        name = f"{region}_kuma.geojson"
+        pts, future, undated, newest = load_points(processed / name, cutoff)
         all_pts += pts
         counts[name] = len(pts)
         print(f"{name}: {len(pts)} points within {days} days"
@@ -198,6 +205,25 @@ def run(days: int = 365) -> dict:
             issues.append(f"{name}: 未来日付 No.{number} {date_str}")
         if future:
             print(f"  [DATA QUALITY] future-dated records in {name}: {future}")
+
+        # A feed that has stopped updating is the most dangerous failure mode
+        # here: zero recent sightings produces zero risk buffers, so the whole
+        # prefecture would be presented as having few bears when in fact we
+        # simply have no current information about it.
+        age = (now - newest).days if newest else None
+        stale = age is None or age > days
+        freshness[region] = {
+            "latest": newest.strftime("%Y/%m/%d") if newest else None,
+            "age_days": age,
+            "stale": stale,
+            "recent_points": len(pts),
+        }
+        if stale:
+            issues.append(
+                f"{region}: 最新の出没記録が{age}日前で、直近{days}日の記録が{len(pts)}件。"
+                f"この県のリスクエリアは実態を反映していない可能性があります"
+            )
+            print(f"  [DATA QUALITY] {region} feed is stale ({age} days old)")
 
     utm_pts = [shp_transform(TO_UTM, p) for p in all_pts]
     buffers_utm = shapely.union_all([p.buffer(BUFFER_METERS, quad_segs=16) for p in utm_pts])
@@ -233,10 +259,12 @@ def run(days: int = 365) -> dict:
                 "geometry": mapping(safe),
                 "properties": {
                     "region": region,
+                    "prefecture": REGION_PREFECTURE[region],
                     "sqm_threshold": SQM_THRESHOLD,
                     "buffer_km": BUFFER_METERS / 1000,
                     "days": days,
                     "atlas_year": LP_YEAR,
+                    **freshness.get(region, {}),
                 },
             }
         )
@@ -268,6 +296,7 @@ def run(days: int = 365) -> dict:
     return {
         "summary": f"直近{days}日の{used}地点から2kmバッファを生成",
         "counts": counts,
+        "freshness": freshness,
         "issues": issues,
     }
 
