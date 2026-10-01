@@ -7864,5 +7864,17 @@
   "lat": 35.666668,
   "lon": 139.315842,
   "candidate_count": 1
+ },
+ "東京都あきる野市テスト": {
+  "matched_title": "東京都あきる野市",
+  "lat": 35.728889,
+  "lon": 139.294174,
+  "candidate_count": 1
+ },
+ "東京都青梅市テスト": {
+  "matched_title": "東京都青梅市",
+  "lat": 35.787956,
+  "lon": 139.275848,
+  "candidate_count": 1
  }
 }

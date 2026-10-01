@@ -25,7 +25,10 @@ OUT_PATH = DATA / "processed" / "tokyo_kuma.geojson"
 # Municipalities appearing in the Tokyo dashboard that are actually in 山梨県.
 YAMANASHI = {"上野原市", "小菅村", "丹波山村"}
 
-# Some rows name two municipalities ("あきる野市、青梅市"); geocode the first.
+# Some rows name two municipalities ("あきる野市、青梅市") because the sighting
+# was near the border. We emit a point for each rather than picking one: the
+# bear was somewhere around there, so covering both with a risk buffer errs on
+# the safe side, which is the direction this map should err in.
 SPLIT_MUNICIPALITY = re.compile(r"[、,／/]")
 
 NOISE_SUFFIXES = re.compile(r"(地内|付近|周辺|地区)$")
@@ -92,43 +95,48 @@ def run() -> dict:
             dropped_old += 1
             continue
 
-        municipality = SPLIT_MUNICIPALITY.split(row.get("市町村", ""))[0].strip()
+        raw_municipality = row.get("市町村", "")
+        municipalities = [m.strip() for m in SPLIT_MUNICIPALITY.split(raw_municipality) if m.strip()]
         place = clean_place(row.get("場所", ""))
-        if place.startswith(municipality):
-            place = place[len(municipality):]
 
-        prefecture = prefecture_for(municipality)
-        query = f"{prefecture}{municipality}{place}"
-        result = geo.geocode(query, cache, stats)
-        status = "district_match"
-        if result is None:
-            result = geo.geocode(f"{prefecture}{municipality}", cache, stats)
-            status = "municipality_fallback" if result else "failed"
+        for municipality in municipalities:
+            district = place[len(municipality):] if place.startswith(municipality) else place
+            prefecture = prefecture_for(municipality)
+            query = f"{prefecture}{municipality}{district}"
+            result = geo.geocode(query, cache, stats)
+            status = "district_match"
+            if result is None:
+                result = geo.geocode(f"{prefecture}{municipality}", cache, stats)
+                status = "municipality_fallback" if result else "failed"
 
-        if not result:
-            failed += 1
-            issues.append(f"東京: ジオコーディング失敗 No.{number} 「{query}」")
-            continue
+            if not result:
+                failed += 1
+                issues.append(f"東京: ジオコーディング失敗 No.{number} 「{query}」")
+                continue
 
-        features.append(
-            {
-                "type": "Feature",
-                "geometry": {"type": "Point", "coordinates": [result["lon"], result["lat"]]},
-                "properties": {
-                    "number": number,
-                    "date": date,
-                    "recorded": row.get("記載日"),
-                    "municipality": municipality,
-                    "district_raw": row.get("場所"),
-                    "kind": row.get("目撃痕跡等"),
-                    "accuracy": row.get("確度"),
-                    "count": row.get("合計"),
-                    "geocode_status": status,
-                    "matched_title": result["matched_title"],
-                    "source": "tokyo_metro_dashboard",
-                },
-            }
-        )
+            features.append(
+                {
+                    "type": "Feature",
+                    "geometry": {"type": "Point", "coordinates": [result["lon"], result["lat"]]},
+                    "properties": {
+                        "number": number,
+                        "date": date,
+                        "recorded": row.get("記載日"),
+                        "municipality": municipality,
+                        "municipality_raw": raw_municipality,
+                        # one sighting reported across a municipal border shows
+                        # up as several points, all covering the same event
+                        "split_of": len(municipalities) if len(municipalities) > 1 else None,
+                        "district_raw": row.get("場所"),
+                        "kind": row.get("目撃痕跡等"),
+                        "accuracy": row.get("確度"),
+                        "count": row.get("合計"),
+                        "geocode_status": status,
+                        "matched_title": result["matched_title"],
+                        "source": "tokyo_metro_dashboard",
+                    },
+                }
+            )
 
     geo.save_cache(cache)
 
