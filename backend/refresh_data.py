@@ -104,7 +104,7 @@ def main() -> int:
             safe_stats = compute_safe_area.run(days=args.days)
             issues += safe_stats.get("issues", [])
         except Exception as e:
-            errors.append(f"直近熊低頻出星観測良好エリアの再計算に失敗: {e}")
+            errors.append(f'直近熊"低頻出"&星観測"暗さ"良好エリアの再計算に失敗: {e}')
             traceback.print_exc()
 
     if not errors:
