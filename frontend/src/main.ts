@@ -321,9 +321,19 @@ map.on("load", async () => {
   // The split is inclusive/exclusive on purpose: exactly RISK_WINDOW_DAYS old
   // still counts as current, and the tags read "より前" to match.
   const DAY = 24 * 60 * 60 * 1000;
-  const RISK_WINDOW_DAYS = 90;
-  const now = Date.now();
-  const OLD_CUTOFF = now - RISK_WINDOW_DAYS * DAY;
+  // Anchor every age calculation to the moment the buffers were computed, not
+  // to the browser's clock. The 2km buffers are baked into safe_area.geojson
+  // at build time, so judging "recent" by today's date would grey out points
+  // whose pink buffer is still drawn around them — one day of drift per day
+  // since the last pipeline run.
+  const areaProps = safeArea.features?.[0]?.properties ?? {};
+  const generatedAt = Date.parse(areaProps.generated_at ?? "");
+  const now = Number.isNaN(generatedAt) ? Date.now() : generatedAt;
+  const RISK_WINDOW_DAYS = areaProps.days ?? 90;
+  const cutoffFromData = Date.parse(areaProps.cutoff ?? "");
+  const OLD_CUTOFF = Number.isNaN(cutoffFromData)
+    ? now - RISK_WINDOW_DAYS * DAY
+    : cutoffFromData;
   const RECENT_F: any = [">=", ["get", "ts"], OLD_CUTOFF];
   const OLD_F: any = ["<", ["get", "ts"], OLD_CUTOFF];
 
@@ -436,7 +446,16 @@ map.on("load", async () => {
   }
 
   // light pollution overlay controls
-  buildSqmLegend(safeArea.features?.[0]?.properties?.sqm_threshold ?? 20);
+  buildSqmLegend(areaProps.sqm_threshold ?? 20);
+
+  // say which day the data speaks for, and how long ago that was
+  const asOf = document.getElementById("as-of");
+  if (asOf && areaProps.generated_at) {
+    const ageDays = Math.floor((Date.now() - now) / DAY);
+    asOf.textContent =
+      `データ基準日: ${areaProps.generated_at}` + (ageDays > 0 ? `（${ageDays}日前）` : "（本日）");
+    if (ageDays > 7) asOf.classList.add("old");
+  }
 
   const sqmBar = document.getElementById("sqm-bar")!;
   document.getElementById("lp-toggle")!.addEventListener("change", (ev) => {
@@ -498,7 +517,9 @@ map.on("load", async () => {
       const days = btn.dataset.days!;
       let cutoff = 0;
       if (days !== "all") {
-        cutoff = Date.now() - Number(days) * 24 * 60 * 60 * 1000;
+        // same anchor as the recent/old split, so the "90日" button selects
+        // exactly the points that produced the drawn buffers
+        cutoff = now - Number(days) * DAY;
       }
       // keep the recent/old split intact and AND the period condition onto it
       const withCutoff = (base: any) =>

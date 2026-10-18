@@ -105,6 +105,7 @@
       display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
     }
     #legend .hint { color: #57606a; }
+    #legend #as-of.old { color: #9a6700; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -134,7 +135,7 @@
     </div>
     <div class="group">
       <label><input type="checkbox" id="safe-toggle" checked />
-        <span class="swatch" style="background:repeating-linear-gradient(-45deg,#1a7f37 0 1px,transparent 1px 5px);border:1px solid #1a7f37"></span>直近熊出没情報エリア&amp;星観測&quot;暗さ&quot;良好エリア (SQM≥20 &amp; 直近90日の熊情報2km圏外)</label>
+        <span class="swatch" style="background:repeating-linear-gradient(-45deg,#1a7f37 0 1px,transparent 1px 5px);border:1px solid #1a7f37"></span>直近90日の熊出没情報2km圏外&amp;星観測&quot;暗さ&quot;良好エリア (SQM≥20)</label>
       <label><input type="checkbox" id="buffer-toggle" checked />
         <span class="swatch" style="background:rgba(207,34,46,.4)"></span>熊出没情報エリア (直近90日, 2km)</label>
     </div>
@@ -143,6 +144,7 @@
       <span>透過 <input type="range" id="lp-opacity" min="0" max="100" value="50" style="width:90px;vertical-align:middle" /></span>
     </div>
     <span class="hint">地図ダブルクリックで予測SQM表示</span>
+    <span class="hint" id="as-of"></span>
   </div>
 
   <details id="notice">

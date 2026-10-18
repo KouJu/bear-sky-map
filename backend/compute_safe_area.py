@@ -183,7 +183,18 @@ def load_points(path: Path, cutoff: datetime | None):
 
 def run(days: int = 365) -> dict:
     """Recompute safe areas. Returns a summary plus data-quality findings."""
-    cutoff = datetime.now() - timedelta(days=days)
+    generated_at = datetime.now()
+    # Align the cutoff to midnight. Sighting dates carry no time, so a cutoff
+    # of "90 days ago at 02:30" would exclude records dated exactly that day
+    # while the frontend, parsing the date string, would include them.
+    cutoff = generated_at.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=days)
+    # The buffers freeze this cutoff at generation time. The frontend must use
+    # the same instant rather than its own clock, or points drift out of the
+    # "recent" window while their buffers are still drawn around them.
+    stamp = {
+        "generated_at": generated_at.strftime("%Y/%m/%d"),
+        "cutoff": cutoff.strftime("%Y/%m/%d"),
+    }
     processed = DATA / "processed"
     issues: list[str] = []
     counts: dict[str, int] = {}
@@ -268,6 +279,7 @@ def run(days: int = 365) -> dict:
                     "buffer_km": BUFFER_METERS / 1000,
                     "days": days,
                     "atlas_year": LP_YEAR,
+                    **stamp,
                     **freshness.get(region, {}),
                 },
             }
@@ -285,7 +297,11 @@ def run(days: int = 365) -> dict:
                     {
                         "type": "Feature",
                         "geometry": mapping(buffers),
-                        "properties": {"buffer_km": BUFFER_METERS / 1000, "days": days},
+                        "properties": {
+                            "buffer_km": BUFFER_METERS / 1000,
+                            "days": days,
+                            **stamp,
+                        },
                     }
                 ],
             },
