@@ -457,6 +457,14 @@ map.on("load", async () => {
     if (ageDays > 7) asOf.classList.add("old");
   }
 
+  // The buffers cover a window fixed when the data was built, so name that
+  // window explicitly instead of saying "the last 90 days" as if it were
+  // counted from whenever the page is opened.
+  const bufferRange = document.getElementById("buffer-range");
+  if (bufferRange && areaProps.cutoff && areaProps.generated_at) {
+    bufferRange.textContent = `${areaProps.cutoff}〜${areaProps.generated_at}`;
+  }
+
   const sqmBar = document.getElementById("sqm-bar")!;
   document.getElementById("lp-toggle")!.addEventListener("change", (ev) => {
     const on = (ev.target as HTMLInputElement).checked;
@@ -517,9 +525,12 @@ map.on("load", async () => {
       const days = btn.dataset.days!;
       let cutoff = 0;
       if (days !== "all") {
-        // same anchor as the recent/old split, so the "90日" button selects
-        // exactly the points that produced the drawn buffers
-        cutoff = now - Number(days) * DAY;
+        // The period buttons are the viewer's own filter, so they count back
+        // from the viewer's clock: "1日" has to mean yesterday, not a day
+        // before whenever the data happened to be built. (The red/grey split
+        // is a different thing and stays anchored to the build, because it
+        // shows which points produced the drawn buffers.)
+        cutoff = Date.now() - Number(days) * DAY;
       }
       // keep the recent/old split intact and AND the period condition onto it
       const withCutoff = (base: any) =>
