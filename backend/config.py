@@ -3,6 +3,31 @@
 Changing a number here changes it everywhere: the backend computation and the
 properties written into the GeoJSON that the frontend reads back.
 """
+from datetime import datetime
+
+
+def clamp_future_date(date: str | None, today: datetime | None = None) -> tuple[str | None, bool]:
+    """Pull a future-dated sighting back to today. Returns (date, was_clamped).
+
+    A date later than today is a typo in the published data, but the location
+    it carries is presumably real. Dropping the record would erase a genuine
+    risk zone from the map, so the point is kept and only its date is adjusted
+    — erring toward showing risk rather than hiding it.
+
+    Clamping rather than leaving it alone matters because a far-future typo
+    (a mistyped year, say) would otherwise sit inside the "recent" window for
+    years, never ageing out. Every clamp is still reported, never silent.
+    """
+    if not date:
+        return date, False
+    today = today or datetime.now()
+    try:
+        parsed = datetime.strptime(date, "%Y/%m/%d")
+    except ValueError:
+        return date, False
+    if parsed <= today:
+        return date, False
+    return f"{today.year}/{today.month}/{today.day}", True
 
 # How long a sighting counts as "current" for risk purposes. Points inside this
 # window generate the 2km risk buffers subtracted from the dark-sky area.

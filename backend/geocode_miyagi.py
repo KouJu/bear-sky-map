@@ -18,7 +18,7 @@ from pathlib import Path
 import openpyxl
 import requests
 
-from config import RETENTION_YEARS
+from config import RETENTION_YEARS, clamp_future_date
 
 DATA = Path(__file__).parent.parent / "data"
 RAW_PATH = DATA / "raw" / "miyagi_kuma.xlsx"
@@ -163,7 +163,7 @@ def run(limit: int | None = None) -> dict:
     stats = {"cache_hits": 0, "api_calls": 0}
 
     features, log = [], []
-    ok_district = ok_municipality_only = failed = dropped_old = 0
+    ok_district = ok_municipality_only = failed = dropped_old = clamped_count = 0
     issues: list[str] = []
     now = datetime.now()
     retention_cutoff = now - timedelta(days=365 * RETENTION_YEARS)
@@ -197,6 +197,14 @@ def run(limit: int | None = None) -> dict:
             result = geocode(f"宮城県{municipality}", cache, stats)
             status = "municipality_fallback" if result else "failed"
 
+        date, clamped = clamp_future_date(row["date"], now)
+        if clamped:
+            clamped_count += 1
+            issues.append(
+                f"宮城: 未来日付 No.{row['number']} {row['date']} "
+                f"({municipality}{district_raw}) → {date} として扱います"
+            )
+
         if result:
             if status == "district_match":
                 ok_district += 1
@@ -208,7 +216,8 @@ def run(limit: int | None = None) -> dict:
                     "geometry": {"type": "Point", "coordinates": [result["lon"], result["lat"]]},
                     "properties": {
                         "number": row["number"],
-                        "date": row["date"],
+                        "date": date,
+                        "date_raw": row["date"] if clamped else None,
                         "municipality": municipality,
                         "district_raw": district_raw,
                         "kind": row["kind"],
@@ -224,12 +233,6 @@ def run(limit: int | None = None) -> dict:
 
         if row["date"] is None:
             issues.append(f"日付が読めない行: No.{row['number']} (月={row['month']}, 日={row['day']})")
-        else:
-            try:
-                if datetime.strptime(row["date"], "%Y/%m/%d") > now:
-                    issues.append(f"未来日付: No.{row['number']} {row['date']} ({municipality}{district_raw})")
-            except ValueError:
-                pass
 
         log.append(
             {
@@ -260,6 +263,7 @@ def run(limit: int | None = None) -> dict:
         "cache_hits": stats["cache_hits"],
         "api_calls": stats["api_calls"],
         "dropped_old": dropped_old,
+        "clamped_future": clamped_count,
         "issues": issues,
         "log": log,
     }

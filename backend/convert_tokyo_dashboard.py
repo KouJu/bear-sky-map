@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import geocode_miyagi as geo  # reuse its cache + GSI client
-from config import RETENTION_YEARS
+from config import RETENTION_YEARS, clamp_future_date
 
 DATA = Path(__file__).parent.parent / "data"
 RAW_PATH = DATA / "raw" / "tokyo_dashboard.json"
@@ -78,7 +78,7 @@ def run() -> dict:
 
     features: list[dict] = []
     issues: list[str] = []
-    dropped_old = failed = 0
+    dropped_old = failed = clamped_count = 0
 
     for row in rows:
         number = row.get("番号")
@@ -88,9 +88,13 @@ def run() -> dict:
             issues.append(f"東京: 年月日が読めない No.{number} 「{raw_date}」")
             continue
 
+        raw_date = date
+        date, clamped = clamp_future_date(date, now)
+        if clamped:
+            clamped_count += 1
+            issues.append(f"東京: 未来日付 No.{number} {raw_date} → {date} として扱います")
+
         dt = datetime.strptime(date, "%Y/%m/%d")
-        if dt > now:
-            issues.append(f"東京: 未来日付 No.{number} {date}")
         if dt < retention_cutoff:
             dropped_old += 1
             continue
@@ -121,6 +125,7 @@ def run() -> dict:
                     "properties": {
                         "number": number,
                         "date": date,
+                        "date_raw": raw_date if clamped else None,
                         "recorded": row.get("記載日"),
                         "municipality": municipality,
                         "municipality_raw": raw_municipality,
@@ -158,6 +163,7 @@ def run() -> dict:
         "features": len(features),
         "skipped": failed,
         "dropped_old": dropped_old,
+        "clamped_future": clamped_count,
         "cache_hits": stats["cache_hits"],
         "api_calls": stats["api_calls"],
         "scraped_at": payload.get("scraped_at"),

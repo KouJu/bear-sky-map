@@ -212,10 +212,13 @@ def run(days: int = 365) -> dict:
               + (f", {undated} without date" if undated else ""))
         if undated:
             issues.append(f"{name}: 日付のない記録 {undated}件")
+        # Converters clamp future dates before this point, so anything caught
+        # here means one slipped through rather than being a duplicate of the
+        # report they already made.
         for number, date_str in future:
-            issues.append(f"{name}: 未来日付 No.{number} {date_str}")
+            issues.append(f"{name}: 未来日付が丸め処理をすり抜けました No.{number} {date_str}")
         if future:
-            print(f"  [DATA QUALITY] future-dated records in {name}: {future}")
+            print(f"  [DATA QUALITY] unclamped future dates in {name}: {future}")
 
         # A feed that has stopped updating is the most dangerous failure mode
         # here: zero recent sightings produces zero risk buffers, so the whole
