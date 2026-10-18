@@ -165,6 +165,10 @@ function buildSqmLegend(threshold: number) {
   }
 }
 
+/** Prefectures with sighting data. Adding one here plus a matching
+ *  `<region>_kuma.geojson` is all the frontend needs. */
+const REGIONS = ["tokyo", "miyagi", "saitama"] as const;
+
 type FeatureCollection = {
   type: "FeatureCollection";
   features: Array<{
@@ -240,27 +244,31 @@ async function predictedSqm(lng: number, lat: number): Promise<number | null> {
   return 22.0 - 5.0 * Math.log(1.0 + ratio) / Math.log(100.0);
 }
 
-function updateCounts(tokyo: FeatureCollection, miyagi: FeatureCollection, cutoff: number) {
-  const count = (fc: FeatureCollection) =>
-    cutoff === 0
-      ? fc.features.length
-      : fc.features.filter((f) => (f.properties.ts as number) >= cutoff).length;
-  document.getElementById("count-tokyo")!.textContent = `${count(tokyo)}件`;
-  document.getElementById("count-miyagi")!.textContent = `${count(miyagi)}件`;
+function updateCounts(sightings: Record<string, FeatureCollection>, cutoff: number) {
+  for (const [region, fc] of Object.entries(sightings)) {
+    const n =
+      cutoff === 0
+        ? fc.features.length
+        : fc.features.filter((f) => (f.properties.ts as number) >= cutoff).length;
+    const el = document.getElementById(`count-${region}`);
+    if (el) el.textContent = `${n}件`;
+  }
 }
 
 map.on("load", async () => {
   // BASE_URL is "/" locally and "/bear-sky-map/" on GitHub Pages, so data
   // paths must be built from it rather than hard-coded to the site root
   const base = import.meta.env.BASE_URL;
-  const [tokyo, miyagi, safeArea, bearBuffer] = await Promise.all([
+  const [tokyo, miyagi, saitama, safeArea, bearBuffer] = await Promise.all([
     fetch(`${base}data/tokyo_kuma.geojson`).then((r) => r.json() as Promise<FeatureCollection>),
     fetch(`${base}data/miyagi_kuma.geojson`).then((r) => r.json() as Promise<FeatureCollection>),
+    fetch(`${base}data/saitama_kuma.geojson`).then((r) => r.json() as Promise<FeatureCollection>),
     fetch(`${base}data/safe_area.geojson`).then((r) => r.json()),
     fetch(`${base}data/bear_buffer.geojson`).then((r) => r.json()),
   ]);
   addTimestamps(tokyo);
   addTimestamps(miyagi);
+  addTimestamps(saitama);
 
   map.addSource("lp", {
     type: "raster",
@@ -312,8 +320,10 @@ map.on("load", async () => {
     paint: { "line-color": "#cf222e", "line-width": 1, "line-dasharray": [2, 2] },
   });
 
-  map.addSource("tokyo", { type: "geojson", data: tokyo as any });
-  map.addSource("miyagi", { type: "geojson", data: miyagi as any });
+  const sightings: Record<string, FeatureCollection> = { tokyo, miyagi, saitama };
+  for (const [region, data] of Object.entries(sightings)) {
+    map.addSource(region, { type: "geojson", data: data as any });
+  }
 
   // Sightings older than the risk window are shown but excluded from the
   // computation (the backend buffer uses the same window), so give them a
@@ -372,16 +382,31 @@ map.on("load", async () => {
     ],
   };
 
-  map.addLayer({ id: "tokyo-points-old", type: "circle", source: "tokyo", filter: OLD_F, paint: oldPaint });
-  map.addLayer({ id: "miyagi-points-old", type: "circle", source: "miyagi", filter: OLD_F, paint: oldPaint });
-  map.addLayer({ id: "tokyo-points", type: "circle", source: "tokyo", filter: RECENT_F, paint: recentPaint("#e63946") });
-  map.addLayer({ id: "miyagi-points", type: "circle", source: "miyagi", filter: RECENT_F, paint: recentPaint("#457b9d") });
+  // One colour for every prefecture: which authority filed the report says
+  // nothing about the risk, and a second hue competed with the layers that do
+  // carry meaning. Age still drives the styling (red / grey / stroke colour).
+  const SIGHTING_RED = "#e63946";
 
-  for (const [id, source] of [["tokyo-old-label", "tokyo"], ["miyagi-old-label", "miyagi"]] as const) {
+  // Older points sit underneath, so a recent sighting is never hidden by
+  // history drawn on top of it.
+  for (const region of REGIONS) {
     map.addLayer({
-      id,
+      id: `${region}-points-old`, type: "circle", source: region,
+      filter: OLD_F, paint: oldPaint,
+    });
+  }
+  for (const region of REGIONS) {
+    map.addLayer({
+      id: `${region}-points`, type: "circle", source: region,
+      filter: RECENT_F, paint: recentPaint(SIGHTING_RED),
+    });
+  }
+
+  for (const region of REGIONS) {
+    map.addLayer({
+      id: `${region}-old-label`,
       type: "symbol",
-      source,
+      source: region,
       filter: OLD_F,
       // Only label once zoomed into a specific area. Across a whole prefecture
       // there are hundreds of old sightings and the labels bury the map; the
@@ -406,7 +431,7 @@ map.on("load", async () => {
   // single click: bear point details only
   map.on("click", (e) => {
     const hits = map.queryRenderedFeatures(e.point, {
-      layers: ["tokyo-points", "miyagi-points", "tokyo-points-old", "miyagi-points-old"],
+      layers: REGIONS.flatMap((r) => [`${r}-points`, `${r}-points-old`]),
     });
     if (hits.length === 0) return;
     const f = hits[0];
@@ -440,7 +465,7 @@ map.on("load", async () => {
       .addTo(map);
   });
 
-  for (const layerId of ["tokyo-points", "miyagi-points", "tokyo-points-old", "miyagi-points-old"]) {
+  for (const layerId of REGIONS.flatMap((r) => [`${r}-points`, `${r}-points-old`])) {
     map.on("mouseenter", layerId, () => (map.getCanvas().style.cursor = "pointer"));
     map.on("mouseleave", layerId, () => (map.getCanvas().style.cursor = ""));
   }
@@ -512,7 +537,7 @@ map.on("load", async () => {
     banner.hidden = false;
   }
 
-  updateCounts(tokyo, miyagi, 0);
+  updateCounts(sightings, 0);
 
   // period filter buttons: "all" clears the filter, otherwise keep features
   // whose timestamp is within the last N days
@@ -535,13 +560,13 @@ map.on("load", async () => {
       // keep the recent/old split intact and AND the period condition onto it
       const withCutoff = (base: any) =>
         cutoff === 0 ? base : ["all", base, [">=", ["get", "ts"], cutoff]];
-      for (const id of ["tokyo-points", "miyagi-points"]) {
+      for (const id of REGIONS.map((r) => `${r}-points`)) {
         map.setFilter(id, withCutoff(RECENT_F));
       }
-      for (const id of ["tokyo-points-old", "miyagi-points-old", "tokyo-old-label", "miyagi-old-label"]) {
+      for (const id of REGIONS.flatMap((r) => [`${r}-points-old`, `${r}-old-label`])) {
         map.setFilter(id, withCutoff(OLD_F));
       }
-      updateCounts(tokyo, miyagi, cutoff);
+      updateCounts(sightings, cutoff);
     });
   });
 });

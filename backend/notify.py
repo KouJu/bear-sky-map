@@ -47,6 +47,7 @@ def build_summary(
     sources: list,
     miyagi_report: dict,
     tokyo_stats: dict,
+    saitama_stats: dict | None = None,
     safe_area_stats: dict,
     issues: list[str],
     errors: list[str],
@@ -73,6 +74,8 @@ def build_summary(
             f"(字レベル一致 {miyagi_report.get('district_match_rate', 0):.0%}, "
             f"新規ジオコーディング {miyagi_report.get('api_calls', 0)}件)"
         )
+    if saitama_stats:
+        lines.append(f"- 埼玉: {saitama_stats.get('features', 0)}件")
     if safe_area_stats:
         lines.append(f"- 観測良好エリア再計算: {safe_area_stats.get('summary', 'done')}")
 

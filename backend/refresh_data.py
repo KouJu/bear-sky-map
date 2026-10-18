@@ -15,6 +15,7 @@ from datetime import datetime
 from pathlib import Path
 
 import compute_safe_area
+import convert_saitama
 import convert_tokyo_dashboard
 import fetch_sources
 import geocode_miyagi
@@ -28,6 +29,7 @@ FRONTEND_DATA = ROOT / "frontend" / "public" / "data"
 PUBLISH = [
     "tokyo_kuma.geojson",
     "miyagi_kuma.geojson",
+    "saitama_kuma.geojson",
     "safe_area.geojson",
     "bear_buffer.geojson",
 ]
@@ -61,6 +63,7 @@ def main() -> int:
     sources, errors, issues = [], [], []
     tokyo_stats: dict = {}
     miyagi_report: dict = {}
+    saitama_stats: dict = {}
     safe_stats: dict = {}
 
     try:
@@ -83,18 +86,23 @@ def main() -> int:
 
     if not errors:
         for label, fn in (("東京の変換", convert_tokyo_dashboard.run),
-                          ("宮城のジオコーディング", geocode_miyagi.run)):
+                          ("宮城のジオコーディング", geocode_miyagi.run),
+                          ("埼玉の変換", convert_saitama.run)):
             try:
                 result = fn()
                 issues += result.get("issues", [])
                 if label.startswith("東京"):
                     tokyo_stats = result
                     print(f"tokyo: {result['features']} features, {result['skipped']} skipped")
-                else:
+                elif label.startswith("宮城"):
                     miyagi_report = result
                     print(f"miyagi: {result['sample_size']} records, "
                           f"{result['api_calls']} new geocodes, "
                           f"{result['cache_hits']} from cache")
+                else:
+                    saitama_stats = result
+                    print(f"saitama: {result['features']} features "
+                          f"(座標は県の公開値、ジオコーディング不要)")
             except Exception as e:
                 errors.append(f"{label}に失敗: {e}")
                 traceback.print_exc()
@@ -124,6 +132,7 @@ def main() -> int:
             sources=sources,
             miyagi_report=miyagi_report,
             tokyo_stats=tokyo_stats,
+            saitama_stats=saitama_stats,
             safe_area_stats=safe_stats,
             issues=issues,
             errors=errors,

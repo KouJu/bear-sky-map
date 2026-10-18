@@ -8,6 +8,7 @@ Downloads are verified by content, not just HTTP status: a 404 page served with
 status 200, or an HTML error page where a spreadsheet was expected, has bitten
 this project before.
 """
+import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -37,6 +38,16 @@ PREFECTURE_URL = (
     "/main/data/municipality/geojson/s0010/prefectures.json"
 )
 PREFECTURE_NAME_KEY = "N03_001"
+
+# 埼玉県's map is an ArcGIS app, and ArcGIS apps are backed by a public REST
+# service. Querying it directly gives GeoJSON with real coordinates, so unlike
+# Tokyo there is nothing to scrape and nothing to geocode.
+SAITAMA_SERVICE = (
+    "https://services9.arcgis.com/n65w8AXGaYPTqFYI/arcgis/rest/services"
+    "/survey123_3123e5ed452d4e89845e4ba6129c1e2d_results/FeatureServer/0"
+)
+SAITAMA_FIELDS = "field_1,field_2,field_4,field_6,field_9,field_10,field_11,field_17"
+SAITAMA_PAGE = 1000  # the service's maxRecordCount
 
 UA = {"User-Agent": "bear-sky-map/1.0 (personal stargazing-safety map)"}
 
@@ -114,8 +125,47 @@ def fetch_prefectures() -> Fetched:
     return Fetched(dest.stem, dest, PREFECTURE_URL, len(body), changed=True)
 
 
+def fetch_saitama() -> Fetched:
+    """Page through the ArcGIS feature service and save the result as GeoJSON."""
+    features: list[dict] = []
+    offset = 0
+    while True:
+        resp = requests.get(
+            f"{SAITAMA_SERVICE}/query",
+            params={
+                "where": "1=1",
+                "outFields": SAITAMA_FIELDS,
+                "outSR": "4326",
+                "f": "geojson",
+                "resultOffset": offset,
+                "resultRecordCount": SAITAMA_PAGE,
+                "orderByFields": "field_1 ASC",
+            },
+            headers=UA,
+            timeout=60,
+        )
+        resp.raise_for_status()
+        page = resp.json()
+        if "error" in page:
+            raise RuntimeError(f"ArcGIS error: {page['error']}")
+        batch = page.get("features", [])
+        features += batch
+        if len(batch) < SAITAMA_PAGE:
+            break
+        offset += SAITAMA_PAGE
+
+    body = json.dumps(
+        {"type": "FeatureCollection", "features": features}, ensure_ascii=False
+    ).encode("utf-8")
+    dest = RAW / "saitama_arcgis.geojson"
+    previous = dest.read_bytes() if dest.exists() else None
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_bytes(body)
+    return Fetched(dest.stem, dest, SAITAMA_SERVICE, len(body), previous != body)
+
+
 def fetch_all() -> list[Fetched]:
-    return [fetch_tokyo(), fetch_miyagi(), fetch_prefectures()]
+    return [fetch_tokyo(), fetch_miyagi(), fetch_saitama(), fetch_prefectures()]
 
 
 if __name__ == "__main__":
