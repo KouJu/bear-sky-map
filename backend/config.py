@@ -71,4 +71,5 @@ REGION_PREFECTURE = {
     "tokyo": "東京都",
     "miyagi": "宮城県",
     "saitama": "埼玉県",
+    "kanagawa": "神奈川県",
 }

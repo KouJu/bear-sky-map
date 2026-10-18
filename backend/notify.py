@@ -45,9 +45,7 @@ def send(message: str) -> bool:
 def build_summary(
     *,
     sources: list,
-    miyagi_report: dict,
-    tokyo_stats: dict,
-    saitama_stats: dict | None = None,
+    region_stats: dict,
     safe_area_stats: dict,
     issues: list[str],
     errors: list[str],
@@ -66,16 +64,13 @@ def build_summary(
     for s in sources:
         lines.append(f"- {s.name}: {'更新あり' if s.changed else '変化なし'} ({s.size:,} bytes)")
 
-    if tokyo_stats:
-        lines.append(f"- 東京: {tokyo_stats.get('features', 0)}件")
-    if miyagi_report:
-        lines.append(
-            f"- 宮城: {miyagi_report.get('sample_size', 0)}件 "
-            f"(字レベル一致 {miyagi_report.get('district_match_rate', 0):.0%}, "
-            f"新規ジオコーディング {miyagi_report.get('api_calls', 0)}件)"
-        )
-    if saitama_stats:
-        lines.append(f"- 埼玉: {saitama_stats.get('features', 0)}件")
+    labels = {"tokyo": "東京", "miyagi": "宮城", "saitama": "埼玉", "kanagawa": "神奈川"}
+    for region, stats in region_stats.items():
+        count = stats.get("features", stats.get("sample_size", 0))
+        extra = ""
+        if stats.get("api_calls"):
+            extra = f" (新規ジオコーディング {stats['api_calls']}件)"
+        lines.append(f"- {labels.get(region, region)}: {count}件{extra}")
     if safe_area_stats:
         lines.append(f"- 観測良好エリア再計算: {safe_area_stats.get('summary', 'done')}")
 

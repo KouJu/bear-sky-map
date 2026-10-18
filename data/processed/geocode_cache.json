@@ -8248,5 +8248,431 @@
   "lat": 38.356075,
   "lon": 140.875061,
   "candidate_count": 1
+ },
+ "神奈川県伊勢原市子易": {
+  "matched_title": "神奈川県伊勢原市子易",
+  "lat": 35.417934,
+  "lon": 139.27034,
+  "candidate_count": 1
+ },
+ "神奈川県相模原市緑区城山": {
+  "matched_title": "神奈川県相模原市緑区城山",
+  "lat": 35.587482,
+  "lon": 139.288757,
+  "candidate_count": 1
+ },
+ "神奈川県相模原市緑区佐野川": {
+  "matched_title": "神奈川県相模原市緑区佐野川",
+  "lat": 35.651836,
+  "lon": 139.14183,
+  "candidate_count": 1
+ },
+ "神奈川県伊勢原市大山": {
+  "matched_title": "神奈川県伊勢原市大山",
+  "lat": 35.42717,
+  "lon": 139.246063,
+  "candidate_count": 1
+ },
+ "神奈川県小田原市久野": {
+  "matched_title": "神奈川県小田原市久野",
+  "lat": 35.261463,
+  "lon": 139.097992,
+  "candidate_count": 1
+ },
+ "神奈川県清川村煤ヶ谷": {
+  "matched_title": "神奈川県清川村煤ヶ谷",
+  "lat": 35.484276,
+  "lon": 139.262299,
+  "candidate_count": 1
+ },
+ "神奈川県箱根町宮城野": {
+  "matched_title": "神奈川県箱根町宮城野",
+  "lat": 35.263847,
+  "lon": 139.048584,
+  "candidate_count": 1
+ },
+ "神奈川県箱根町仙石原": {
+  "matched_title": "神奈川県箱根町仙石原",
+  "lat": 35.260601,
+  "lon": 139.004547,
+  "candidate_count": 1
+ },
+ "神奈川県相模原市緑区吉野": {
+  "matched_title": "神奈川県相模原市緑区吉野",
+  "lat": 35.632023,
+  "lon": 139.165573,
+  "candidate_count": 1
+ },
+ "神奈川県相模原市緑区寸沢嵐": {
+  "matched_title": "神奈川県相模原市緑区寸沢嵐",
+  "lat": 35.586128,
+  "lon": 139.206879,
+  "candidate_count": 1
+ },
+ "神奈川県相模原市緑区千木良": {
+  "matched_title": "神奈川県相模原市緑区千木良",
+  "lat": 35.626949,
+  "lon": 139.212143,
+  "candidate_count": 1
+ },
+ "神奈川県秦野市蓑毛": {
+  "matched_title": "神奈川県秦野市蓑毛",
+  "lat": 35.419514,
+  "lon": 139.232025,
+  "candidate_count": 1
+ },
+ "神奈川県松田町松田庶子": {
+  "matched_title": "神奈川県松田町松田庶子",
+  "lat": 35.35981,
+  "lon": 139.127533,
+  "candidate_count": 1
+ },
+ "神奈川県山北町皆瀬川": {
+  "matched_title": "神奈川県山北町皆瀬川",
+  "lat": 35.37212,
+  "lon": 139.063675,
+  "candidate_count": 1
+ },
+ "神奈川県伊勢原市三ノ宮": {
+  "matched_title": "神奈川県伊勢原市三ノ宮",
+  "lat": 35.404079,
+  "lon": 139.274307,
+  "candidate_count": 1
+ },
+ "神奈川県伊勢原市上粕屋": {
+  "matched_title": "神奈川県伊勢原市上粕屋",
+  "lat": 35.416489,
+  "lon": 139.288803,
+  "candidate_count": 1
+ },
+ "神奈川県相模原市緑区澤井": {
+  "matched_title": "神奈川県相模原市緑区澤井",
+  "lat": 35.635384,
+  "lon": 139.14859,
+  "candidate_count": 1
+ },
+ "神奈川県山北町川西": {
+  "matched_title": "神奈川県山北町川西",
+  "lat": 35.372478,
+  "lon": 139.030472,
+  "candidate_count": 1
+ },
+ "神奈川県相模原市緑区小渕": {
+  "matched_title": "神奈川県相模原市緑区小渕",
+  "lat": 35.623451,
+  "lon": 139.137421,
+  "candidate_count": 1
+ },
+ "神奈川県山北町山北": {
+  "matched_title": "神奈川県山北町山北",
+  "lat": 35.361237,
+  "lon": 139.081055,
+  "candidate_count": 1
+ },
+ "神奈川県松田町寄": {
+  "matched_title": "神奈川県松田町寄",
+  "lat": 35.405666,
+  "lon": 139.124084,
+  "candidate_count": 1
+ },
+ "神奈川県秦野市羽根": {
+  "matched_title": "神奈川県秦野市羽根",
+  "lat": 35.400909,
+  "lon": 139.204025,
+  "candidate_count": 1
+ },
+ "神奈川県山北町中川": {
+  "matched_title": "神奈川県山北町中川",
+  "lat": 35.438549,
+  "lon": 139.045639,
+  "candidate_count": 1
+ },
+ "神奈川県清川村煤ケ谷": {
+  "matched_title": "神奈川県清川村煤ヶ谷",
+  "lat": 35.484276,
+  "lon": 139.262299,
+  "candidate_count": 1
+ },
+ "神奈川県相模原市緑区青野原": {
+  "matched_title": "神奈川県相模原市緑区青野原",
+  "lat": 35.553944,
+  "lon": 139.186737,
+  "candidate_count": 1
+ },
+ "神奈川県相模原市緑区牧野": {
+  "matched_title": "神奈川県相模原市緑区牧野",
+  "lat": 35.571507,
+  "lon": 139.164047,
+  "candidate_count": 1
+ },
+ "神奈川県厚木市七沢": {
+  "matched_title": "神奈川県厚木市七沢",
+  "lat": 35.448963,
+  "lon": 139.266006,
+  "candidate_count": 1
+ },
+ "神奈川県相模原市緑区三井": {
+  "matched_title": "神奈川県相模原市緑区三井",
+  "lat": 35.598003,
+  "lon": 139.259048,
+  "candidate_count": 1
+ },
+ "神奈川県厚木市飯山": {
+  "matched_title": "神奈川県厚木市飯山",
+  "lat": 35.474049,
+  "lon": 139.313263,
+  "candidate_count": 1
+ },
+ "神奈川県相模原市緑区与瀬": {
+  "matched_title": "神奈川県相模原市緑区与瀬",
+  "lat": 35.62851,
+  "lon": 139.180374,
+  "candidate_count": 1
+ },
+ "神奈川県愛川町半原": {
+  "matched_title": "神奈川県愛川町半原",
+  "lat": 35.529568,
+  "lon": 139.264832,
+  "candidate_count": 1
+ },
+ "神奈川県清川村宮ケ瀬": {
+  "matched_title": "神奈川県清川村宮ヶ瀬",
+  "lat": 35.500069,
+  "lon": 139.214569,
+  "candidate_count": 1
+ },
+ "神奈川県山北町谷ケ": {
+  "matched_title": "神奈川県山北町谷ケ",
+  "lat": 35.366077,
+  "lon": 139.037628,
+  "candidate_count": 1
+ },
+ "神奈川県松田町松田惣領": {
+  "matched_title": "神奈川県松田町松田惣領",
+  "lat": 35.353275,
+  "lon": 139.144409,
+  "candidate_count": 1
+ },
+ "神奈川県山北町玄倉": {
+  "matched_title": "神奈川県山北町玄倉",
+  "lat": 35.418152,
+  "lon": 139.070084,
+  "candidate_count": 1
+ },
+ "神奈川県厚木市上荻野": {
+  "matched_title": "神奈川県厚木市上荻野",
+  "lat": 35.503555,
+  "lon": 139.304321,
+  "candidate_count": 1
+ },
+ "神奈川県伊勢原市日向": {
+  "matched_title": "神奈川県伊勢原市日向",
+  "lat": 35.437168,
+  "lon": 139.266983,
+  "candidate_count": 1
+ },
+ "神奈川県秦野市堀山下": {
+  "matched_title": "神奈川県秦野市堀山下",
+  "lat": 35.417122,
+  "lon": 139.163269,
+  "candidate_count": 1
+ },
+ "神奈川県相模原市緑区青根": {
+  "matched_title": "神奈川県相模原市緑区青根",
+  "lat": 35.517387,
+  "lon": 139.116531,
+  "candidate_count": 1
+ },
+ "神奈川県秦野市三廻部": {
+  "matched_title": "神奈川県秦野市三廻部",
+  "lat": 35.41996,
+  "lon": 139.15239,
+  "candidate_count": 1
+ },
+ "神奈川県山北町向原": {
+  "matched_title": "神奈川県山北町向原",
+  "lat": 35.359695,
+  "lon": 139.103058,
+  "candidate_count": 1
+ },
+ "神奈川県山北町平山": {
+  "matched_title": "神奈川県山北町平山",
+  "lat": 35.354141,
+  "lon": 139.06813,
+  "candidate_count": 1
+ },
+ "神奈川県秦野市菩提": {
+  "matched_title": "神奈川県秦野市菩提",
+  "lat": 35.411545,
+  "lon": 139.199066,
+  "candidate_count": 1
+ },
+ "神奈川県秦野市曽屋": {
+  "matched_title": "神奈川県秦野市曽屋",
+  "lat": 35.371437,
+  "lon": 139.238983,
+  "candidate_count": 1
+ },
+ "神奈川県秦野市東田原": {
+  "matched_title": "神奈川県秦野市東田原",
+  "lat": 35.395798,
+  "lon": 139.225815,
+  "candidate_count": 1
+ },
+ "神奈川県秦野市丹沢寺山": {
+  "matched_title": "神奈川県秦野市丹沢寺山",
+  "lat": 35.447475,
+  "lon": 139.204971,
+  "candidate_count": 1
+ },
+ "神奈川県南足柄市矢倉沢": {
+  "matched_title": "神奈川県南足柄市矢倉沢",
+  "lat": 35.306595,
+  "lon": 139.026962,
+  "candidate_count": 1
+ },
+ "神奈川県厚木市上古沢": {
+  "matched_title": "神奈川県厚木市上古沢",
+  "lat": 35.455341,
+  "lon": 139.310074,
+  "candidate_count": 1
+ },
+ "神奈川県相模原市緑区三ケ木": {
+  "matched_title": "神奈川県相模原市緑区三ケ木",
+  "lat": 35.590679,
+  "lon": 139.229218,
+  "candidate_count": 1
+ },
+ "神奈川県伊勢原市三ノ塔": {
+  "matched_title": "神奈川県伊勢原市三ノ宮",
+  "lat": 35.404079,
+  "lon": 139.274307,
+  "candidate_count": 1
+ },
+ "神奈川県秦野市寺山": {
+  "matched_title": "神奈川県秦野市寺山",
+  "lat": 35.421936,
+  "lon": 139.217407,
+  "candidate_count": 1
+ },
+ "神奈川県相模原市緑区名倉": {
+  "matched_title": "神奈川県相模原市緑区名倉",
+  "lat": 35.605831,
+  "lon": 139.141983,
+  "candidate_count": 1
+ },
+ "神奈川県愛川町八菅山": {
+  "matched_title": "神奈川県愛川町八菅山",
+  "lat": 35.512508,
+  "lon": 139.322449,
+  "candidate_count": 1
+ },
+ "神奈川県山北町神尾田": {
+  "matched_title": "神奈川県山北町神尾田",
+  "lat": 35.413403,
+  "lon": 139.042587,
+  "candidate_count": 1
+ },
+ "神奈川県秦野市堀西": {
+  "matched_title": "神奈川県秦野市堀西",
+  "lat": 35.391907,
+  "lon": 139.17337,
+  "candidate_count": 1
+ },
+ "神奈川県秦野市小蓑毛": {
+  "matched_title": "神奈川県秦野市小蓑毛",
+  "lat": 35.410603,
+  "lon": 139.238525,
+  "candidate_count": 1
+ },
+ "神奈川県伊勢原市善波": {
+  "matched_title": "神奈川県伊勢原市善波",
+  "lat": 35.389923,
+  "lon": 139.261032,
+  "candidate_count": 1
+ },
+ "神奈川県秦野市横野": {
+  "matched_title": "神奈川県秦野市横野",
+  "lat": 35.417397,
+  "lon": 139.179199,
+  "candidate_count": 1
+ },
+ "神奈川県南足柄市沼田": {
+  "matched_title": "神奈川県南足柄市沼田",
+  "lat": 35.291317,
+  "lon": 139.125504,
+  "candidate_count": 1
+ },
+ "神奈川県秦野市南矢名": {
+  "matched_title": "神奈川県秦野市南矢名",
+  "lat": 35.373379,
+  "lon": 139.250107,
+  "candidate_count": 1
+ },
+ "神奈川県山北町山市場": {
+  "matched_title": "神奈川県山北町山市場",
+  "lat": 35.395065,
+  "lon": 139.040955,
+  "candidate_count": 1
+ },
+ "神奈川県厚木市岡津古久": {
+  "matched_title": "神奈川県厚木市岡津古久",
+  "lat": 35.427296,
+  "lon": 139.31398,
+  "candidate_count": 1
+ },
+ "神奈川県厚木市小野": {
+  "matched_title": "神奈川県厚木市小野",
+  "lat": 35.435318,
+  "lon": 139.314972,
+  "candidate_count": 1
+ },
+ "神奈川県秦野市戸川": {
+  "matched_title": "神奈川県秦野市戸川",
+  "lat": 35.419914,
+  "lon": 139.174454,
+  "candidate_count": 1
+ },
+ "神奈川県山北町神縄": {
+  "matched_title": "神奈川県山北町神縄",
+  "lat": 35.402622,
+  "lon": 139.045959,
+  "candidate_count": 1
+ },
+ "神奈川県相模原市緑区鳥屋": {
+  "matched_title": "神奈川県相模原市緑区鳥屋",
+  "lat": 35.516121,
+  "lon": 139.175766,
+  "candidate_count": 1
+ },
+ "神奈川県厚木市棚沢": {
+  "matched_title": "神奈川県厚木市棚沢",
+  "lat": 35.499023,
+  "lon": 139.33374,
+  "candidate_count": 1
+ },
+ "神奈川県山北町世附": {
+  "matched_title": "神奈川県山北町世附",
+  "lat": 35.411018,
+  "lon": 139.008713,
+  "candidate_count": 1
+ },
+ "神奈川県厚木市中荻野": {
+  "matched_title": "神奈川県厚木市中荻野",
+  "lat": 35.482445,
+  "lon": 139.319778,
+  "candidate_count": 1
+ },
+ "神奈川県山北町都夫良野": {
+  "matched_title": "神奈川県山北町都夫良野",
+  "lat": 35.367828,
+  "lon": 139.055313,
+  "candidate_count": 1
+ },
+ "神奈川県相模原市緑区小淵": {
+  "matched_title": "神奈川県相模原市緑区小渕",
+  "lat": 35.623451,
+  "lon": 139.137421,
+  "candidate_count": 1
  }
 }

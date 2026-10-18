@@ -49,6 +49,20 @@ SAITAMA_SERVICE = (
 SAITAMA_FIELDS = "field_1,field_2,field_4,field_6,field_9,field_10,field_11,field_17"
 SAITAMA_PAGE = 1000  # the service's maxRecordCount
 
+# 神奈川県 publishes one PDF per fiscal year. The filename carries the
+# publication date, NOT the year the data covers — kuma_r7_0330.pdf is 令和7年度
+# while kuma_r7_0331.pdf is 令和6年度 — so the filename must never be used to
+# date the contents. The link label is only used to find which PDFs to take;
+# convert_kanagawa reads the authoritative year out of each PDF's own text.
+KANAGAWA_PAGE = "https://www.pref.kanagawa.jp/docs/t4i/cnt/f3813/index.html"
+KANAGAWA_ORIGIN = "https://www.pref.kanagawa.jp"
+KANAGAWA_ANCHOR = re.compile(
+    r'<a[^>]+href="(/documents/15077/[^"]+\.pdf)"[^>]*>(.*?)</a>', re.S
+)
+KANAGAWA_FISCAL = re.compile(r"【令和(\d+)年度】")
+TAGS = re.compile(r"<[^>]+>")
+REIWA_EPOCH = 2018  # 令和1年 = 2019
+
 UA = {"User-Agent": "bear-sky-map/1.0 (personal stargazing-safety map)"}
 
 
@@ -164,8 +178,50 @@ def fetch_saitama() -> Fetched:
     return Fetched(dest.stem, dest, SAITAMA_SERVICE, len(body), previous != body)
 
 
+def fetch_kanagawa() -> list[Fetched]:
+    """Download every fiscal-year PDF listed on the page."""
+    resp = requests.get(KANAGAWA_PAGE, headers=UA, timeout=30)
+    resp.raise_for_status()
+    # the server sends no charset, so requests guesses ISO-8859-1 and the
+    # Japanese link labels come back as mojibake unless we say otherwise
+    resp.encoding = resp.apparent_encoding or "utf-8"
+    # the 【令和N年度】 label sits inside nested markup, so strip tags per anchor
+    found = []
+    for path, inner in KANAGAWA_ANCHOR.findall(resp.text):
+        label = TAGS.sub("", inner)
+        m = KANAGAWA_FISCAL.search(label)
+        if m:
+            found.append((path, m.group(1)))
+    if not found:
+        raise RuntimeError(
+            f"{KANAGAWA_PAGE} に【令和N年度】形式のPDFリンクが見つかりません"
+            " — ページ構成が変わった可能性があります"
+        )
+
+    fetched: list[Fetched] = []
+    for path, _label_year in found:
+        # keep the publisher's own filename; the year comes from the contents
+        dest = RAW / f"kanagawa_{Path(path).stem}.pdf"
+        body = requests.get(KANAGAWA_ORIGIN + path, headers=UA, timeout=60).content
+        if not body.startswith(b"%PDF"):
+            raise RuntimeError(f"{path} は PDF ではありません")
+        previous = dest.read_bytes() if dest.exists() else None
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(body)
+        fetched.append(
+            Fetched(dest.stem, dest, KANAGAWA_ORIGIN + path, len(body), previous != body)
+        )
+    return fetched
+
+
 def fetch_all() -> list[Fetched]:
-    return [fetch_tokyo(), fetch_miyagi(), fetch_saitama(), fetch_prefectures()]
+    return [
+        fetch_tokyo(),
+        fetch_miyagi(),
+        fetch_saitama(),
+        *fetch_kanagawa(),
+        fetch_prefectures(),
+    ]
 
 
 if __name__ == "__main__":

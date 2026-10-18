@@ -15,6 +15,7 @@ from datetime import datetime
 from pathlib import Path
 
 import compute_safe_area
+import convert_kanagawa
 import convert_saitama
 import convert_tokyo_dashboard
 import fetch_sources
@@ -30,6 +31,7 @@ PUBLISH = [
     "tokyo_kuma.geojson",
     "miyagi_kuma.geojson",
     "saitama_kuma.geojson",
+    "kanagawa_kuma.geojson",
     "safe_area.geojson",
     "bear_buffer.geojson",
 ]
@@ -61,9 +63,7 @@ def main() -> int:
     print(f"=== refresh started {started:%Y-%m-%d %H:%M:%S} ===")
 
     sources, errors, issues = [], [], []
-    tokyo_stats: dict = {}
-    miyagi_report: dict = {}
-    saitama_stats: dict = {}
+    region_stats: dict[str, dict] = {}
     safe_stats: dict = {}
 
     try:
@@ -84,27 +84,27 @@ def main() -> int:
             errors.append(f"東京ダッシュボードの取得に失敗: {e}")
             traceback.print_exc()
 
+    # one converter per prefecture; each returns {features, issues, ...}
+    converters = (
+        ("tokyo", "東京", convert_tokyo_dashboard.run),
+        ("miyagi", "宮城", geocode_miyagi.run),
+        ("saitama", "埼玉", convert_saitama.run),
+        ("kanagawa", "神奈川", convert_kanagawa.run),
+    )
     if not errors:
-        for label, fn in (("東京の変換", convert_tokyo_dashboard.run),
-                          ("宮城のジオコーディング", geocode_miyagi.run),
-                          ("埼玉の変換", convert_saitama.run)):
+        for region, label, fn in converters:
             try:
                 result = fn()
                 issues += result.get("issues", [])
-                if label.startswith("東京"):
-                    tokyo_stats = result
-                    print(f"tokyo: {result['features']} features, {result['skipped']} skipped")
-                elif label.startswith("宮城"):
-                    miyagi_report = result
-                    print(f"miyagi: {result['sample_size']} records, "
-                          f"{result['api_calls']} new geocodes, "
-                          f"{result['cache_hits']} from cache")
-                else:
-                    saitama_stats = result
-                    print(f"saitama: {result['features']} features "
-                          f"(座標は県の公開値、ジオコーディング不要)")
+                region_stats[region] = result
+                count = result.get("features", result.get("sample_size", 0))
+                detail = ""
+                if result.get("api_calls") is not None:
+                    detail = (f" (新規ジオコーディング {result['api_calls']}件,"
+                              f" キャッシュ {result['cache_hits']}件)")
+                print(f"{region}: {count} features{detail}")
             except Exception as e:
-                errors.append(f"{label}に失敗: {e}")
+                errors.append(f"{label}の変換に失敗: {e}")
                 traceback.print_exc()
 
     if not errors:
@@ -130,9 +130,7 @@ def main() -> int:
     if not args.no_notify:
         message = notify.build_summary(
             sources=sources,
-            miyagi_report=miyagi_report,
-            tokyo_stats=tokyo_stats,
-            saitama_stats=saitama_stats,
+            region_stats=region_stats,
             safe_area_stats=safe_stats,
             issues=issues,
             errors=errors,

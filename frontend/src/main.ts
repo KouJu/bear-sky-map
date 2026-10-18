@@ -167,7 +167,7 @@ function buildSqmLegend(threshold: number) {
 
 /** Prefectures with sighting data. Adding one here plus a matching
  *  `<region>_kuma.geojson` is all the frontend needs. */
-const REGIONS = ["tokyo", "miyagi", "saitama"] as const;
+const REGIONS = ["tokyo", "miyagi", "saitama", "kanagawa"] as const;
 
 type FeatureCollection = {
   type: "FeatureCollection";
@@ -259,16 +259,17 @@ map.on("load", async () => {
   // BASE_URL is "/" locally and "/bear-sky-map/" on GitHub Pages, so data
   // paths must be built from it rather than hard-coded to the site root
   const base = import.meta.env.BASE_URL;
-  const [tokyo, miyagi, saitama, safeArea, bearBuffer] = await Promise.all([
-    fetch(`${base}data/tokyo_kuma.geojson`).then((r) => r.json() as Promise<FeatureCollection>),
-    fetch(`${base}data/miyagi_kuma.geojson`).then((r) => r.json() as Promise<FeatureCollection>),
-    fetch(`${base}data/saitama_kuma.geojson`).then((r) => r.json() as Promise<FeatureCollection>),
+  const [regionData, safeArea, bearBuffer] = await Promise.all([
+    Promise.all(
+      REGIONS.map((region) =>
+        fetch(`${base}data/${region}_kuma.geojson`).then(
+          (r) => r.json() as Promise<FeatureCollection>,
+        ),
+      ),
+    ),
     fetch(`${base}data/safe_area.geojson`).then((r) => r.json()),
     fetch(`${base}data/bear_buffer.geojson`).then((r) => r.json()),
   ]);
-  addTimestamps(tokyo);
-  addTimestamps(miyagi);
-  addTimestamps(saitama);
 
   map.addSource("lp", {
     type: "raster",
@@ -320,10 +321,11 @@ map.on("load", async () => {
     paint: { "line-color": "#cf222e", "line-width": 1, "line-dasharray": [2, 2] },
   });
 
-  const sightings: Record<string, FeatureCollection> = { tokyo, miyagi, saitama };
-  for (const [region, data] of Object.entries(sightings)) {
-    map.addSource(region, { type: "geojson", data: data as any });
-  }
+  const sightings: Record<string, FeatureCollection> = {};
+  REGIONS.forEach((region, i) => {
+    sightings[region] = addTimestamps(regionData[i]);
+    map.addSource(region, { type: "geojson", data: regionData[i] as any });
+  });
 
   // Sightings older than the risk window are shown but excluded from the
   // computation (the backend buffer uses the same window), so give them a
