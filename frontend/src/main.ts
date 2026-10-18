@@ -438,8 +438,10 @@ map.on("load", async () => {
     if (hits.length === 0) return;
     const f = hits[0];
     const props = f.properties ?? {};
+    // skip the internal timestamp and any field the source left empty, so a
+    // popup shows what is actually known about the sighting
     const html = Object.entries(props)
-      .filter(([k]) => k !== "ts")
+      .filter(([k, v]) => k !== "ts" && v !== null && v !== undefined && v !== "")
       .map(([k, v]) => `<b>${k}</b>: ${v}`)
       .join("<br/>");
     new maplibregl.Popup()

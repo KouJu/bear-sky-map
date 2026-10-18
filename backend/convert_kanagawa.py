@@ -182,8 +182,11 @@ def run() -> dict:
                     "properties": {
                         "number": f"{fiscal_year}-{rec['number']}",
                         "date": date,
-                        "date_raw": raw_date if clamped else None,
-                        "date_approximate": rec["approximate_date"],
+                        # what the source actually printed, whenever the
+                        # published date differs from it: the PDF's own
+                        # wording for a vague date ("4月下旬"), or the
+                        # original date when a future typo was pulled back
+                        "date_raw": rec["approximate_date"] or (raw_date if clamped else None),
                         "district_raw": rec["place"],
                         "kind": rec["kind"],
                         "area": rec["area"],
