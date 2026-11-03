@@ -1,6 +1,6 @@
 # bear-sky-map
 
-熊の出没リスクが低く、夜空が暗い（SQM 20以上）「安全な天体観測スポット」を地図上で探すWebアプリ。
+熊出没が報告されていない、夜空が暗い（SQM 20以上）「天体観測エリア」を地図上で探すWebアプリ。
 
 - **frontend/** 地図UI (Vite + TypeScript + MapLibre GL JS)
 - **backend/** データ取得・ジオコーディング・空間演算 (Python)
