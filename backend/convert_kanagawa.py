@@ -137,11 +137,32 @@ def run() -> dict:
     dropped_old = failed = clamped_count = approx_count = 0
     parsed_total = expected_total = 0
 
+    # The prefecture republishes the current year under a new filename each
+    # time it updates (kuma_r8_1013 -> kuma_r8_1102), and the superseded file
+    # stays on disk. Reading both would duplicate every record of that year,
+    # drawing two risk circles for one sighting, so keep only the newest file
+    # per fiscal year.
+    by_year: dict[int, tuple[Path, list[dict], int]] = {}
     for path in sorted(RAW_DIR.glob("kanagawa_*.pdf")):
         records, highest, fiscal_year = read_pdf(path)
         if fiscal_year is None:
             issues.append(f"神奈川: {path.name} に「令和N年度」の記載がなく年を特定できません")
             continue
+        previous = by_year.get(fiscal_year)
+        if previous is None or path.stat().st_mtime >= previous[0].stat().st_mtime:
+            if previous is not None:
+                issues.append(
+                    f"神奈川: 令和{fiscal_year - 2018}年度は {path.name} を採用"
+                    f"（{previous[0].name} は旧版のため除外）"
+                )
+            by_year[fiscal_year] = (path, records, highest)
+        else:
+            issues.append(
+                f"神奈川: 令和{fiscal_year - 2018}年度は {previous[0].name} を採用"
+                f"（{path.name} は旧版のため除外）"
+            )
+
+    for fiscal_year, (path, records, highest) in sorted(by_year.items()):
         parsed_total += len(records)
         expected_total += highest
         if highest and len(records) < highest:
