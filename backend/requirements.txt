@@ -3,6 +3,7 @@
 numpy==2.5.2
 openpyxl==3.1.5
 playwright==1.63.0
+pypdf==6.21.1
 pyproj==3.7.2
 requests==2.34.2
 shapely==2.1.2

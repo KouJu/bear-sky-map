@@ -32,6 +32,10 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements.txt
       - run: pip install -r backend/requirements.txt
+      # catch a package that was installed by hand locally but never declared,
+      # before spending minutes on a browser download and data fetches
+      - name: 依存関係の宣言漏れを検査
+        run: python backend/check_requirements.py
       # the Tokyo sightings are scraped from a Power BI dashboard, which needs
       # a real browser engine
       - run: python -m playwright install --with-deps chromium
