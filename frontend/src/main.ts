@@ -65,6 +65,18 @@ const map = new maplibregl.Map({
     ],
   },
   ...INITIAL_VIEW,
+  // the default attribution bar wraps to two lines on a phone and covers the
+  // bottom of the colour key; the compact form keeps the credits one tap away
+  attributionControl: { compact: true },
+});
+
+// MapLibre renders the compact attribution expanded on load, which still
+// spans the full width of the map. Collapse it to the (i) button so the
+// credits stay reachable without covering the colour key.
+map.on("load", () => {
+  document
+    .querySelector(".maplibregl-ctrl-attrib")
+    ?.classList.remove("maplibregl-compact-show");
 });
 
 // expose for debugging in the browser console

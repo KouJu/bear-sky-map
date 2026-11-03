@@ -106,6 +106,39 @@
     }
     #legend .hint { color: #57606a; }
     #legend #as-of.old { color: #9a6700; font-weight: bold; }
+
+    /* ---- phones ----------------------------------------------------
+       Two things break on a narrow screen: the legend labels are long
+       enough to push the page sideways, and the colour key is taller
+       than the map once the map has to share the screen. Let the text
+       wrap, and shrink the key so it always fits inside the map. */
+    @media (max-width: 640px) {
+      #legend {
+        gap: 10px; font-size: 12.5px;
+        align-items: flex-start; flex-direction: column;
+      }
+      #legend .group { gap: 8px; }
+      /* nowrap is what forced the horizontal scroll */
+      #legend label, #legend .count { white-space: normal; }
+      #legend label { display: flex; align-items: flex-start; gap: 4px; }
+      #legend .swatch, #legend .dot { flex: none; margin-top: 3px; }
+
+      #sqm-bar {
+        /* bottom-left is the only free corner on a phone: the zoom/home
+           controls own the top-right and the attribution the bottom-right */
+        top: auto; bottom: 8px; right: auto; left: 8px;
+        max-height: calc(100% - 20px);
+        overflow: hidden;
+        padding: 4px 6px; font-size: 9px;
+      }
+      #sqm-bar .title { margin-bottom: 2px; }
+      #sqm-bar .step { height: 8px; gap: 4px; }
+      #sqm-bar .sw { width: 12px; height: 8px; }
+
+      #map { min-height: 55vh; }               /* keep the map usable */
+      #filter-bar { gap: 6px; padding: 8px; }
+      .filter-btn { padding: 6px 12px; }
+    }
   </style>
 </head>
 <body>
