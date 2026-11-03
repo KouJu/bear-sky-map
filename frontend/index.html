@@ -100,7 +100,10 @@
     }
     #notice > summary { cursor: pointer; font-weight: bold; font-size: 13px; }
     #notice .notice-body p { margin: 8px 0 0; }
-    #notice .sources { color: #6b5f3a; }
+    #notice .sources { color: #6b5f3a; margin-top: 10px; }
+    #notice .sources p { margin: 6px 0 2px; }
+    #notice .sources ul { margin: 0; padding-left: 20px; }
+    #notice .sources li { margin: 1px 0; }
     #legend .group {
       display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
     }
@@ -195,19 +198,27 @@
         夜空の明るさ（SQM）は衛星データに基づく<em>予測値</em>で、月齢・天候・季節による変動は
         含みません。本アプリの情報に基づく行動の結果について、作者は責任を負いません。
       </p>
-      <p class="sources">
-        出典:
-        東京都環境局「ツキノワグマ目撃等情報」/
-        宮城県「クマ目撃情報」/
-        夜空の明るさ: <a href="https://djlorenz.github.io/astronomy/lp/" target="_blank" rel="noopener">Light Pollution Atlas 2025 (David J. Lorenz)</a>（VIIRS衛星データに基づく）/
-        住所座標変換: <a href="https://msearch.gsi.go.jp/" target="_blank" rel="noopener">国土地理院 地名検索API</a> /
-        地図: <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院 地理院タイル（淡色地図）</a> /
-        県境: <a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-v3_1.html" target="_blank" rel="noopener">国土交通省 国土数値情報（行政区域データ）</a>を加工して作成
-      </p>
-      <p class="sources">
-        本アプリは国土交通省の国土数値情報（行政区域データ）を加工して作成していますが、
-        内容について国土交通省が保証するものではありません。
-      </p>
+      <div class="sources">
+        <p><strong>出典</strong></p>
+        <p>熊の出没情報</p>
+        <ul>
+          <li><a href="https://www.kankyo.metro.tokyo.lg.jp/nature/animals_plants/bear/data" target="_blank" rel="noopener">東京都環境局「ツキノワグマ目撃等情報」</a></li>
+          <li><a href="https://www.pref.miyagi.jp/soshiki/sizenhogo/r8kumamokugeki.html" target="_blank" rel="noopener">宮城県「クマ目撃情報」</a></li>
+          <li><a href="https://atlas-eco-saitama-pref-saitama.hub.arcgis.com/" target="_blank" rel="noopener">埼玉県「ツキノワグマ出没マップ」</a></li>
+          <li><a href="https://www.pref.kanagawa.jp/docs/t4i/cnt/f3813/index.html" target="_blank" rel="noopener">神奈川県「ツキノワグマの目撃等情報」</a></li>
+        </ul>
+        <p>地図・基盤データ</p>
+        <ul>
+          <li>夜空の明るさ: <a href="https://djlorenz.github.io/astronomy/lp/" target="_blank" rel="noopener">Light Pollution Atlas 2025 (David J. Lorenz)</a>（VIIRS衛星データに基づく）</li>
+          <li>住所の座標変換: <a href="https://msearch.gsi.go.jp/" target="_blank" rel="noopener">国土地理院 地名検索API</a></li>
+          <li>地図: <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院 地理院タイル（淡色地図）</a></li>
+          <li>県境: <a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-v3_1.html" target="_blank" rel="noopener">国土交通省 国土数値情報（行政区域データ）</a>を加工して作成</li>
+        </ul>
+        <p>
+          本アプリは国土交通省の国土数値情報（行政区域データ）を加工して作成していますが、
+          内容について国土交通省が保証するものではありません。
+        </p>
+      </div>
     </div>
   </details>
 

@@ -36,6 +36,13 @@ jobs:
       # before spending minutes on a browser download and data fetches
       - name: 依存関係の宣言漏れを検査
         run: python backend/check_requirements.py
+      # crediting each data source is a condition of using it, so treat a
+      # missing credit as a build failure rather than something to notice later
+      - name: 出典の記載漏れを検査
+        run: python backend/check_attribution.py
+        working-directory: ${{ github.workspace }}
+        env:
+          PYTHONPATH: backend
       # the Tokyo sightings are scraped from a Power BI dashboard, which needs
       # a real browser engine
       - run: python -m playwright install --with-deps chromium
