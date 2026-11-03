@@ -14,6 +14,7 @@ import traceback
 from datetime import datetime
 from pathlib import Path
 
+import aggregate_points
 import compute_safe_area
 import convert_kanagawa
 import convert_saitama
@@ -106,6 +107,16 @@ def main() -> int:
             except Exception as e:
                 errors.append(f"{label}の変換に失敗: {e}")
                 traceback.print_exc()
+
+    # merge sightings that share a coordinate before anything draws them
+    if not errors:
+        try:
+            agg = aggregate_points.run()
+            for region, s in agg["regions"].items():
+                print(f"{region}: {s['before']} -> {s['after']}地点 (最大 {s['largest']}件/地点)")
+        except Exception as e:
+            errors.append(f"重複地点の集約に失敗: {e}")
+            traceback.print_exc()
 
     if not errors:
         try:

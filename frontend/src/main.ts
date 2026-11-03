@@ -196,8 +196,30 @@ function addTimestamps(fc: FeatureCollection): FeatureCollection {
     const raw = f.properties.date;
     const ts = typeof raw === "string" ? Date.parse(raw) : NaN;
     f.properties.ts = Number.isNaN(ts) ? 0 : ts;
+    // every sighting at this position, newest first, for recounting under a
+    // period filter (the backend merged them into this one point)
+    const dates = (f.properties.dates as string[] | undefined) ?? [raw as string];
+    f.properties.tsList = dates
+      .map((d) => Date.parse(d))
+      .filter((t) => !Number.isNaN(t));
+    f.properties.n = (f.properties.count as number) ?? 1;
   }
   return fc;
+}
+
+/** Set `n` to the number of sightings at each point within the active period. */
+function recountWithinPeriod(
+  sightings: Record<string, FeatureCollection>,
+  cutoff: number,
+  map: maplibregl.Map,
+) {
+  for (const [region, fc] of Object.entries(sightings)) {
+    for (const f of fc.features) {
+      const list = (f.properties.tsList as number[]) ?? [];
+      f.properties.n = cutoff === 0 ? list.length : list.filter((t) => t >= cutoff).length;
+    }
+    (map.getSource(region) as maplibregl.GeoJSONSource | undefined)?.setData(fc as any);
+  }
 }
 
 // --- Light pollution (Lorenz Light Pollution Atlas 2025) -----------------
@@ -256,12 +278,14 @@ async function predictedSqm(lng: number, lat: number): Promise<number | null> {
   return 22.0 - 5.0 * Math.log(1.0 + ratio) / Math.log(100.0);
 }
 
+/** Count sightings, not map points: one dot can stand for dozens of them. */
 function updateCounts(sightings: Record<string, FeatureCollection>, cutoff: number) {
   for (const [region, fc] of Object.entries(sightings)) {
-    const n =
-      cutoff === 0
-        ? fc.features.length
-        : fc.features.filter((f) => (f.properties.ts as number) >= cutoff).length;
+    let n = 0;
+    for (const f of fc.features) {
+      const list = (f.properties.tsList as number[]) ?? [];
+      n += cutoff === 0 ? list.length : list.filter((t) => t >= cutoff).length;
+    }
     const el = document.getElementById(`count-${region}`);
     if (el) el.textContent = `${n}件`;
   }
@@ -372,7 +396,21 @@ map.on("load", async () => {
     now - 365 * DAY, "90日より前",
   ];
 
-  const pointRadius: any = ["interpolate", ["linear"], ["zoom"], 5, 4, 12, 9];
+  // Grow the dot with how many sightings share the spot, so a place with 76
+  // reports does not look like a place with one. Logarithmic, or the busiest
+  // locations would swamp the map.
+  //
+  // The zoom interpolation has to stay the outermost expression — MapLibre
+  // rejects a zoom curve nested inside arithmetic — so the count term is
+  // added inside each stop instead.
+  const countBoost: any = ["*", 2.6, ["log10", ["max", 1, ["coalesce", ["get", "n"], 1]]]];
+  const pointRadius: any = [
+    "interpolate",
+    ["linear"],
+    ["zoom"],
+    5, ["+", 4, countBoost],
+    12, ["+", 9, countBoost],
+  ];
   const recentPaint = (color: string): any => ({
     "circle-radius": pointRadius,
     "circle-color": color,
@@ -450,12 +488,27 @@ map.on("load", async () => {
     if (hits.length === 0) return;
     const f = hits[0];
     const props = f.properties ?? {};
-    // skip the internal timestamp and any field the source left empty, so a
-    // popup shows what is actually known about the sighting
-    const html = Object.entries(props)
-      .filter(([k, v]) => k !== "ts" && v !== null && v !== undefined && v !== "")
+    // This point may stand for several sightings at the same place, so lead
+    // with how many and list their dates — that history is the reason the
+    // records were merged rather than dropped.
+    const dates: string[] = Array.isArray(props.dates)
+      ? props.dates
+      : typeof props.dates === "string"
+        ? JSON.parse(props.dates)
+        : [props.date];
+    const internal = new Set(["ts", "tsList", "n", "dates", "count", "date_oldest", "date"]);
+    const details = Object.entries(props)
+      .filter(([k, v]) => !internal.has(k) && v !== null && v !== undefined && v !== "")
       .map(([k, v]) => `<b>${k}</b>: ${v}`)
       .join("<br/>");
+    const header =
+      dates.length > 1
+        ? `<b>この地点で ${dates.length}件</b><br/>` +
+          `<small>${dates.slice(0, 12).join("、")}` +
+          (dates.length > 12 ? ` ほか${dates.length - 12}件` : "") +
+          "</small>"
+        : `<b>出没日</b>: ${props.date}`;
+    const html = `${header}<hr style="margin:6px 0;border:none;border-top:1px solid #d8dee4"/>${details}`;
     new maplibregl.Popup()
       .setLngLat((f.geometry as any).coordinates)
       .setHTML(html)
@@ -582,6 +635,8 @@ map.on("load", async () => {
       for (const id of REGIONS.flatMap((r) => [`${r}-points-old`, `${r}-old-label`])) {
         map.setFilter(id, withCutoff(OLD_F));
       }
+      // dot size reflects how many sightings fall inside the chosen period
+      recountWithinPeriod(sightings, cutoff, map);
       updateCounts(sightings, cutoff);
     });
   });
