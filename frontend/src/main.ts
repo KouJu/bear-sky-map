@@ -515,11 +515,9 @@ map.on("load", async () => {
       .addTo(map);
   });
 
-  // double click: predicted sky brightness (SQM) popup
-  // (preventDefault stops the default double-click zoom)
-  map.on("dblclick", async (e) => {
-    e.preventDefault();
-    const { lng, lat } = e.lngLat;
+  // predicted sky brightness (SQM) popup for a spot on the map
+  const showSqmAt = async (lngLat: maplibregl.LngLat) => {
+    const { lng, lat } = lngLat;
     const sqm = await predictedSqm(lng, lat);
     const body =
       sqm === null
@@ -529,10 +527,43 @@ map.on("load", async () => {
             ? '<span style="color:#1a7f37"><b>暗空条件 (SQM≥20) を満たす</b></span>'
             : '<span style="color:#cf222e">暗空条件 (SQM≥20) を満たさない</span>');
     new maplibregl.Popup()
-      .setLngLat(e.lngLat)
+      .setLngLat(lngLat)
       .setHTML(`${body}<br/><small>${lat.toFixed(4)}, ${lng.toFixed(4)} / Atlas ${LP_YEAR}</small>`)
       .addTo(map);
+  };
+
+  // Double-tapping a touch screen does not produce a DOM dblclick event, so
+  // the mouse handler alone left this feature unreachable on a phone. Detect
+  // the second tap ourselves, and turn off the built-in double-tap zoom so the
+  // map does not jump while reading the value.
+  map.doubleClickZoom.disable();
+  map.on("dblclick", (e) => {
+    e.preventDefault();
+    void showSqmAt(e.lngLat);
   });
+
+  const DOUBLE_TAP_MS = 350;
+  const DOUBLE_TAP_PX = 30;
+  let lastTapAt = 0;
+  let lastTapXY: [number, number] = [0, 0];
+  map.getCanvasContainer().addEventListener(
+    "touchend",
+    (ev: TouchEvent) => {
+      if (ev.touches.length > 0 || ev.changedTouches.length !== 1) return; // pinch, not a tap
+      const touch = ev.changedTouches[0];
+      const now = Date.now();
+      const moved = Math.hypot(touch.clientX - lastTapXY[0], touch.clientY - lastTapXY[1]);
+      if (now - lastTapAt < DOUBLE_TAP_MS && moved < DOUBLE_TAP_PX) {
+        const rect = map.getCanvas().getBoundingClientRect();
+        void showSqmAt(map.unproject([touch.clientX - rect.left, touch.clientY - rect.top]));
+        lastTapAt = 0; // a third tap starts a fresh pair
+      } else {
+        lastTapAt = now;
+        lastTapXY = [touch.clientX, touch.clientY];
+      }
+    },
+    { passive: true },
+  );
 
   for (const layerId of REGIONS.flatMap((r) => [`${r}-points`, `${r}-points-old`])) {
     map.on("mouseenter", layerId, () => (map.getCanvas().style.cursor = "pointer"));
