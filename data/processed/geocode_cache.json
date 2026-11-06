@@ -8920,5 +8920,17 @@
   "lat": 35.386364,
   "lon": 139.159729,
   "candidate_count": 1
+ },
+ "東京都青梅市勝沼": {
+  "matched_title": "東京都青梅市勝沼",
+  "lat": 35.790745,
+  "lon": 139.269882,
+  "candidate_count": 1
+ },
+ "東京都あきる野市小峰台": {
+  "matched_title": "東京都あきる野市小峰台",
+  "lat": 35.71965,
+  "lon": 139.234131,
+  "candidate_count": 1
  }
 }
