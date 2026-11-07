@@ -8932,5 +8932,23 @@
   "lat": 35.71965,
   "lon": 139.234131,
   "candidate_count": 1
+ },
+ "宮城県栗原市瀬峰藤沢瀬嶺": {
+  "matched_title": "宮城県栗原市瀬峰",
+  "lat": 38.661358,
+  "lon": 141.052322,
+  "candidate_count": 1
+ },
+ "宮城県利府町菅谷字舘": {
+  "matched_title": "宮城県利府町菅谷",
+  "lat": 38.33662,
+  "lon": 140.947601,
+  "candidate_count": 1
+ },
+ "宮城県富谷市明石杉ノ入": {
+  "matched_title": "宮城県富谷市明石杉ノ入",
+  "lat": 38.365253,
+  "lon": 140.904984,
+  "candidate_count": 1
  }
 }
