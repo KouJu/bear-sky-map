@@ -8950,5 +8950,35 @@
   "lat": 38.365253,
   "lon": 140.904984,
   "candidate_count": 1
+ },
+ "宮城県気仙沼市松崎鶴巻": {
+  "matched_title": "宮城県気仙沼市松崎鶴巻",
+  "lat": 38.869293,
+  "lon": 141.565735,
+  "candidate_count": 1
+ },
+ "神奈川県相模原市緑区青山": {
+  "matched_title": "神奈川県相模原市緑区青山",
+  "lat": 35.559189,
+  "lon": 139.241776,
+  "candidate_count": 1
+ },
+ "神奈川県厚木市まつかげ台": {
+  "matched_title": "神奈川県厚木市まつかげ台",
+  "lat": 35.504787,
+  "lon": 139.316315,
+  "candidate_count": 1
+ },
+ "神奈川県山北町岸": {
+  "matched_title": "神奈川県山北町岸",
+  "lat": 35.35305,
+  "lon": 139.089432,
+  "candidate_count": 1
+ },
+ "神奈川県厚木市上飯山": {
+  "matched_title": "神奈川県厚木市上依知",
+  "lat": 35.516674,
+  "lon": 139.361496,
+  "candidate_count": 4
  }
 }
