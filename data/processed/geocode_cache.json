@@ -8992,5 +8992,65 @@
   "lat": 38.454689,
   "lon": 140.847778,
   "candidate_count": 4
+ },
+ "東京都上野原町大鶴地区 大倉": {
+  "matched_title": "東京都",
+  "lat": 35.689503,
+  "lon": 139.691727,
+  "candidate_count": 1
+ },
+ "東京都上野原町島田地区 鶴島": {
+  "matched_title": "東京都",
+  "lat": 35.689503,
+  "lon": 139.691727,
+  "candidate_count": 1
+ },
+ "東京都上野原町島田": {
+  "matched_title": "東京都",
+  "lat": 35.689503,
+  "lon": 139.691727,
+  "candidate_count": 1
+ },
+ "東京都上野原町上野原地区 八米": {
+  "matched_title": "東京都",
+  "lat": 35.689503,
+  "lon": 139.691727,
+  "candidate_count": 1
+ },
+ "東京都上野原町巌地区 川合": {
+  "matched_title": "東京都",
+  "lat": 35.689503,
+  "lon": 139.691727,
+  "candidate_count": 1
+ },
+ "東京都あきる野市留原": {
+  "matched_title": "東京都あきる野市留原",
+  "lat": 35.723358,
+  "lon": 139.230881,
+  "candidate_count": 1
+ },
+ "宮城県仙台市青葉区芋沢字寺下東２６－１": {
+  "matched_title": "宮城県仙台市青葉区芋沢寺下東２６番地",
+  "lat": 38.298882,
+  "lon": 140.769211,
+  "candidate_count": 1
+ },
+ "宮城県仙台市泉区泉区根白石字行木沢東1-8": {
+  "matched_title": "宮城県仙台市泉区泉ケ丘",
+  "lat": 38.351654,
+  "lon": 140.870773,
+  "candidate_count": 3
+ },
+ "宮城県栗原市栗駒字文字大槻": {
+  "matched_title": "宮城県栗原市栗駒文字",
+  "lat": 38.856781,
+  "lon": 140.86731,
+  "candidate_count": 1
+ },
+ "宮城県栗原市築館字八沢忽滑沢": {
+  "matched_title": "宮城県栗原市築館八沢忽滑沢",
+  "lat": 38.695168,
+  "lon": 141.024796,
+  "candidate_count": 1
  }
 }
