@@ -9112,5 +9112,11 @@
   "lat": 38.821243,
   "lon": 141.568085,
   "candidate_count": 1
+ },
+ "東京都上野原町巌": {
+  "matched_title": "東京都",
+  "lat": 35.689503,
+  "lon": 139.691727,
+  "candidate_count": 1
  }
 }
